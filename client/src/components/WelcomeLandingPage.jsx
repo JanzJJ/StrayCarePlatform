@@ -53,7 +53,7 @@ export default function WelcomeLandingPage({ onGetStarted }) {
     const fetchStats = async () => {
       try {
         // IMPORTANT: Ensure you create this public endpoint in your backend!
-        const response = await fetch("http://localhost:5001/api/public/stats");
+        const response = await fetch("https://straycareplatform.onrender.com/api/public/stats");
         if (response.ok) {
           const data = await response.json();
           setStats({

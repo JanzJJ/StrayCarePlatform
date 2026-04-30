@@ -67,7 +67,7 @@ export default function AuthPage({ onLogin }) {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5001/api/auth/login", {
+      const response = await fetch("https://straycareplatform.onrender.com/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -102,7 +102,7 @@ export default function AuthPage({ onLogin }) {
           },
         ).then((res) => res.json());
 
-        const response = await fetch("http://localhost:5001/api/auth/google", {
+        const response = await fetch("https://straycareplatform.onrender.com/api/auth/google", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -145,7 +145,7 @@ export default function AuthPage({ onLogin }) {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5001/api/auth/register", {
+      const response = await fetch("https://straycareplatform.onrender.com/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -187,7 +187,7 @@ export default function AuthPage({ onLogin }) {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5001/api/auth/register", {
+      const response = await fetch("https://straycareplatform.onrender.com/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -233,7 +233,7 @@ export default function AuthPage({ onLogin }) {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5001/api/auth/register", {
+      const response = await fetch("https://straycareplatform.onrender.com/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

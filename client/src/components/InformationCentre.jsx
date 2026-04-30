@@ -51,7 +51,7 @@ export default function InformationCentre() {
     const fetchOrganizations = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5001/api/hub/organizations",
+          "https://straycareplatform.onrender.com/api/hub/organizations",
         );
         if (response.ok) {
           const data = await response.json();
@@ -74,7 +74,7 @@ export default function InformationCentre() {
       setIsServicesLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:5001/api/hub/services?type=${selectedPlaceType}&city=${selectedCity}`,
+          `https://straycareplatform.onrender.com/api/hub/services?type=${selectedPlaceType}&city=${selectedCity}`,
         );
         if (response.ok) {
           const data = await response.json();

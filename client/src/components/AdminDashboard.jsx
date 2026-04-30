@@ -56,7 +56,7 @@ export function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:5001/api/admin/dashboard",
+        "https://straycareplatform.onrender.com/api/admin/dashboard",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -98,9 +98,9 @@ export function AdminDashboard() {
       let url = "";
 
       if (deleteType === "adoption") {
-        url = `http://localhost:5001/api/admin/adoptions/${itemToDelete._id}`;
+        url = `https://straycareplatform.onrender.com/api/admin/adoptions/${itemToDelete._id}`;
       } else if (deleteType === "report") {
-        url = `http://localhost:5001/api/admin/reports/${itemToDelete._id}`;
+        url = `https://straycareplatform.onrender.com/api/admin/reports/${itemToDelete._id}`;
       }
 
       const response = await fetch(url, {
@@ -858,7 +858,7 @@ export function AdminDashboard() {
                       file.fileType === "image" ? (
                         <img
                           key={index}
-                          src={`http://localhost:5001/${file.url.replace(/\\/g, "/")}`}
+                          src={`https://straycareplatform.onrender.com/${file.url.replace(/\\/g, "/")}`}
                           alt={`Report media ${index + 1}`}
                           className="w-full h-48 object-cover rounded-lg shadow-md"
                         />

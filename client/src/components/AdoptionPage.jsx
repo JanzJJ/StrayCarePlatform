@@ -311,8 +311,8 @@ export default function AdoptionPage() {
   const fetchAdoptionData = async () => {
     try {
       const [listingsRes, countsRes] = await Promise.all([
-        fetch("http://localhost:5001/api/adoption"),
-        fetch("http://localhost:5001/api/adoption/counts"),
+        fetch("https://straycareplatform.onrender.com/api/adoption"),
+        fetch("https://straycareplatform.onrender.com/api/adoption/counts"),
       ]);
 
       if (listingsRes.ok) setDogs(await listingsRes.json());
@@ -385,7 +385,7 @@ export default function AdoptionPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5001/api/adoption", {
+      const response = await fetch("https://straycareplatform.onrender.com/api/adoption", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -416,7 +416,7 @@ export default function AdoptionPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5001/api/adoption/${requestedDogId}/request`,
+        `https://straycareplatform.onrender.com/api/adoption/${requestedDogId}/request`,
         {
           method: "POST",
           headers: {
@@ -458,7 +458,7 @@ export default function AdoptionPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5001/api/adoption/${id}/confirm`,
+        `https://straycareplatform.onrender.com/api/adoption/${id}/confirm`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
@@ -487,7 +487,7 @@ export default function AdoptionPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5001/api/adoption/${id}/cancel`,
+        `https://straycareplatform.onrender.com/api/adoption/${id}/cancel`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
@@ -584,7 +584,7 @@ export default function AdoptionPage() {
   // Helper to format images from backend
   const getImageUrl = (dog) => {
     if (dog.media && dog.media.length > 0) {
-      return `http://localhost:5001/${dog.media[0].url}`;
+      return `https://straycareplatform.onrender.com/${dog.media[0].url}`;
     }
     return "https://images.unsplash.com/photo-1724367269355-3fcfa12e99c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaXhlZCUyMGJyZWVkJTIwZG9nfGVufDF8fHx8MTc2OTUxNjY2OXww&ixlib=rb-4.1.0&q=80&w=1080";
   };

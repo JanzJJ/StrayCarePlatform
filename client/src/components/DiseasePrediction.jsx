@@ -59,7 +59,7 @@ export function DiseaseDetectionPage() {
     const checkService = async () => {
       try {
         const res = await fetch(
-          "http://localhost:5001/api/disease-detection/status",
+          "https://straycareplatform.onrender.com/api/disease-detection/status",
         );
         const data = await res.json();
         setServiceStatus(data);
@@ -102,7 +102,7 @@ export function DiseaseDetectionPage() {
       formData.append("image", uploadedFile);
 
       const res = await fetch(
-        "http://localhost:5001/api/disease-detection/analyze",
+        "https://straycareplatform.onrender.com/api/disease-detection/analyze",
         {
           method: "POST",
           headers: {

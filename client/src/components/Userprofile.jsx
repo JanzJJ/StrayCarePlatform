@@ -33,7 +33,7 @@ import {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
-const API_BASE = "http://localhost:5001/api/users";
+const API_BASE = "https://straycareplatform.onrender.com/api/users";
 
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem("token");
