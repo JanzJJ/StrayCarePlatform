@@ -197,7 +197,7 @@ export default function AdoptionPage() {
   /**
    * DOG LISTING FORM STATES
    * Used when organizations create new adoptable dog listings:
-   * 
+   
    * PHOTOS:
    * • dogPhotos: Array of File objects from upload
    * • photoPreviews: Data URLs for preview display
@@ -582,12 +582,13 @@ export default function AdoptionPage() {
   ]);
 
   // Helper to format images from backend
-  const getImageUrl = (dog) => {
-    if (dog.media && dog.media.length > 0) {
-      return `https://straycareplatform.onrender.com/${dog.media[0].url}`;
-    }
-    return "https://images.unsplash.com/photo-1724367269355-3fcfa12e99c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaXhlZCUyMGJyZWVkJTIwZG9nfGVufDF8fHx8MTc2OTUxNjY2OXww&ixlib=rb-4.1.0&q=80&w=1080";
-  };
+ const getImageUrl = (dog) => {
+  if (dog.media && dog.media.length > 0) {
+    const url = dog.media[0].url;
+    return url.startsWith("http") ? url : `https://straycareplatform.onrender.com/${url}`;
+  }
+  return "https://images.unsplash.com/photo-1724367269355-3fcfa12e99c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaXhlZCUyMGJyZWVkJTIwZG9nfGVufDF8fHx8MTc2OTUxNjY2OXww&ixlib=rb-4.1.0&q=80&w=1080";
+};
 
   const getStatusStyle = (status) => {
     switch (status) {

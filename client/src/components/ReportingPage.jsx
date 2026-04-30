@@ -1354,14 +1354,15 @@ export default function ReportingPage() {
                     item.fileType === "video" ? (
                       <video
                         key={idx}
-                        src={`https://straycareplatform.onrender.com/${item.url}`}
+                        src={item.url.startsWith("http") ? item.url : `https://straycareplatform.onrender.com/${item.url}`}
+
                         className="w-full h-24 object-cover rounded-lg"
                         controls
                       />
                     ) : (
                       <img
                         key={idx}
-                        src={`https://straycareplatform.onrender.com/${item.url}`}
+                        src={item.url.startsWith("http") ? item.url : `https://straycareplatform.onrender.com/${item.url}`}
                         alt="Dog"
                         className="w-full h-24 object-cover rounded-lg shadow-sm"
                       />
