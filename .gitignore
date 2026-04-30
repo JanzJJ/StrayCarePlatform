@@ -1,0 +1,38 @@
+# =========================
+# Node.js & React (Frontend & Backend)
+# =========================
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# =========================
+# Python (ML Service)
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env/
+
+# =========================
+# Environment Variables (CRITICAL!)
+# =========================
+.env
+.env.local
+.env.development
+.env.production
+
+# =========================
+# Local Uploads & Build Files
+# =========================
+uploads/
+build/
+dist/
+.next/
+
+# =========================
+# OS Generated Files
+# =========================
+.DS_Store
+Thumbs.db
