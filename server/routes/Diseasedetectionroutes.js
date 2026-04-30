@@ -7,7 +7,9 @@ const authMiddleware = require("../middleware/auth");
 const User = require("../models/User");
 
 // ── Config ─────────────────────────────────────────────────────────────────
-const FLASK_URL = process.env.FLASK_URL || "http://localhost:5002";
+//  CHANGED: Now points directly to live Hugging Face ML API
+const FLASK_URL =
+  process.env.FLASK_URL || "https://vishwa2k3-straycare-ml.hf.space";
 const HEALTH_DETECTION_POINTS = 50; // Must match POINTS.HEALTH_DETECTION in userController.js
 
 // ── Multer — store upload in memory, 10MB limit ────────────────────────────

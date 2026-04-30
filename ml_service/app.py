@@ -117,10 +117,10 @@ def predict():
 
 # ── Entry point ────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))  # Changed to 7860 for Hugging Face
+    port = int(os.environ.get("PORT", 5002))  # Changed to 7860 for Hugging Face
     print("[INFO⚠️ ] Running in MOCK MODE for testing", flush=True)
     print("[INFO] This version returns sample predictions.", flush=True)
-    print(f"[INFO] Starting Flask server on http://0.0.0.0:{port}", flush=True)
+    print(f"[INFO] Starting Flask server on http://0.0.0.0:{5002}", flush=True)
     try:
         app.run(host="0.0.0.0", port=port, debug=False)
     except Exception as e:

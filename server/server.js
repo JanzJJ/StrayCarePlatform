@@ -1,37 +1,4 @@
 /**
-
- * STRAYCARE BACKEND SERVER
- *
- * 
- * Main Entry Point for StrayCare Backend API
- * 
- * Overview:
- * This is the Express.js server that powers the StrayCare stray dog care platform.
- * It handles all API requests from the React frontend and manages:
- * - User authentication (registration, login, OAuth)
- * - Dog adoption listings and requests
- * - Stray dog reporting with location tracking
- * - User profiles and achievement system
- * - Disease detection API integration
- * - Resource discovery (vets, organizations, pet shops)
- * 
- * Technology Stack:
- * - Framework: Express.js 5.2.1
- * - Database: MongoDB with Mongoose
- * - Authentication: JWT tokens + Google OAuth
- * - File Storage: Multer for image/video uploads
- * - Cross-Origin: CORS enabled for React frontend
- * 
- * Environment Variables (required in .env):
- * - PORT: Server port (default: 5001)
- * - MONGO_URI: MongoDB Atlas connection string
- * - JWT_SECRET: Secret key for JWT token signing
- * - GOOGLE_CLIENT_ID: Google OAuth client ID
- * - EMAIL_USER: Gmail address for notifications
- * - EMAIL_PASS: Gmail app-specific password
- * - FLASK_URL: Python ML service URL for disease detection
- * - GOOGLE_MAPS_API_KEY: Google Maps API key
- * 
  * Architecture:
  * - routes/: API endpoint definitions
  * - controllers/: Business logic for each feature
@@ -40,29 +7,7 @@
  * - config/: Database connection setup
  * - utils/: Helper functions (email sending, etc.)
  * - uploads/: File storage for user uploads
- * 
- * Server Flow:
- * 1. Load environment variables from .env file
- * 2. Import required dependencies (Express, CORS, Path, Database)
- * 3. Establish MongoDB connection via connectDB()
- * 4. Configure Express middleware (CORS, JSON parsing, file uploads)
- * 5. Mount API route handlers
- * 6. Start listening on configured PORT
- * 7. Accept incoming HTTP requests from React frontend
- * 
- * Security Considerations:
- * - CORS configured to accept requests from frontend
- * - JWT middleware protects authenticated endpoints
- * - Password hashing with bcryptjs (not stored in plain text)
- * - File upload validation (MIME types, file size limits)
- * - Environment variables keep secrets out of source code
- * 
- * Typical Request Flow:
- * 1. Frontend sends HTTP request to /api/<route>
- * 2. Middleware processes request (parse JSON, validate JWT)
- * 3. Route handler directs to appropriate controller
- * 4. Controller executes business logic, queries database
- * 5. Response sent back to frontend (success or error)
+ 
  */
 
 // ─── INITIALIZATION ─────────────────────────────────────────────────────────
@@ -79,12 +24,6 @@ const connectDB = require("./config/db"); // Custom MongoDB connection function
 // ─── DATABASE CONNECTION ──────────────────────────────────────────────────
 /**
  * Establish connection to MongoDB Atlas
- * This function:
- * - Sets up DNS configuration for SRV record resolution
- * - Establishes Mongoose connection to MongoDB cluster
- * - Initializes database for all subsequent operations
- *
- * If connection fails, the process exits (see config/db.js for details)
  */
 connectDB();
 
@@ -135,25 +74,7 @@ app.use(express.json());
  */
 app.use(express.urlencoded({ extended: true }));
 
-/**
- * Static File Serving Middleware
- * Makes /uploads directory publicly accessible via HTTP
- *
- * Without this:
- * - Images/videos would stay hidden on server filesystem
- * - Frontend couldn't access uploaded files
- *
- * With this:
- * - Image stored at: server/uploads/adopt-1234567890-fluffy.jpg
- * - Accessible at: http://server:5001/uploads/adopt-1234567890-fluffy.jpg
- * - Frontend can display with <img src="/uploads/adopt-1234567890-fluffy.jpg" />
- *
- * Path Resolution:
- * - __dirname: Full path to server directory (/path/to/straycare-system/server)
- * - path.join(__dirname, "uploads"): Full path to uploads folder
- * - express.static(): Serve files from that directory
- */
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 // ─── ROUTE MOUNTING ───────────────────────────────────────────────────────
 /**
