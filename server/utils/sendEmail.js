@@ -49,7 +49,7 @@ const sendEmail = async (optionsOrTo, subject, text) => {
       const resend = new Resend(process.env.RESEND_API_KEY);
 
       const result = await resend.emails.send({
-        from: "nethmajanuki@gmail.com",
+        from: "onboarding@resend.dev", // Resend's free test email (no setup needed)
         to: toAddress,
         subject: emailSubject,
         text: emailText,
