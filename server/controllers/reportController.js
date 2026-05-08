@@ -1,16 +1,15 @@
 /**
- 
+ * ═══════════════════════════════════════════════════════════════════════════════
  * REPORT CONTROLLER
- 
- * 
+ * ═══════════════════════════════════════════════════════════════════════════════
+ *
  * This controller manages stray dog reports and rescue operations:
  * - Creating detailed reports about stray dogs found
- * - Tracking the status/outcome of reported dogs (adopted, sheltered, contacted welfare)
+ * - Tracking the status/outcome of reported dogs
  * - Managing map visualization with color-coded dog statuses
  * - Uploading photos and videos of dogs
  * - Rewarding users for reporting and helping dogs
- * - Sending urgent notifications to welfare organizations
-
+ * - Sending urgent email notifications to welfare organizations
  */
 
 const Report = require("../models/Report");
@@ -18,62 +17,50 @@ const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
 
 // ─── REWARD POINTS CONSTANTS ─────────────────────────────────────────────────
-// These constants define how many reward points users earn for different actions
-// To incentivize community participation in dog rescue
+// These constants define how many reward points users earn for different actions.
+// This encourages community participation in stray dog welfare.
 
 const POINTS = {
-  PERMANENT_ADOPT: 50,      // Points for permanently adopting a dog
-  TEMP_SHELTER: 20,         // Points for temporarily sheltering a dog
-  REPORT_STRAY: 25,         // Points for reporting a stray dog
-  CONTACT_WELFARE: 10,      // Points for contacting welfare organizations
-  FACILITATE_ADOPTION: 30,  // Points for facilitating an adoption
+  PERMANENT_ADOPT: 50, // Points for permanently adopting a dog
+  TEMP_SHELTER: 20, // Points for temporarily sheltering a dog
+  REPORT_STRAY: 25, // Points for reporting a stray dog
+  CONTACT_WELFARE: 10, // Points for contacting welfare organizations
+  FACILITATE_ADOPTION: 30, // Points for facilitating an adoption
 };
 
+// ─── HELPER FUNCTION: getMapColor ────────────────────────────────────────────
+// This keeps the map marker colour consistent with the report status.
 
+const getMapColor = (actionStatus) => {
+  if (actionStatus === "Permanently Adopted") return "Green";
+  if (actionStatus === "Temporarily Adopted") return "Yellow";
+  if (actionStatus === "Contacted Welfare Organizations") return "Blue";
+  return "Red"; // Default colour for "Urgent Help Needed"
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // FUNCTION 1: createReport
+// ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Creates a detailed report about a stray dog discovered by a user
- * 
- * Purpose: Document stray dogs found and their current status/outcome
- * 
- * Action Statuses Supported:
- * - "Urgent Help Needed": Dog needs immediate assistance, alerts sent to welfare orgs
- * - "Temporarily Adopted": Dog taken in for temporary shelter/guardianship
- * - "Permanently Adopted": Dog found a forever home
- * - "Contacted Welfare Organizations": Welfare org contacted to help
- * 
- * Process:
- * 1. Validate file uploads (max 5 files, max 1 video)
- * 2. Validate all required fields are present
- * 3. Parse JSON form data back into objects
- * 4. Validate action-specific requirements:
- *    - Permanent adoption needs adopter details
- *    - Temporary shelter needs guardian details
- * 5. Process media files and store URLs
- * 6. Determine map color based on action status
- * 7. Create and save report to database
- * 8. Award reward points to reporter
- * 9. Send urgent emails if status is "Urgent Help Needed"
+ * Creates a detailed report about a stray dog discovered by a user.
  *
- * 
+ * Supported action statuses:
+ * - Urgent Help Needed
+ * - Temporarily Adopted
+ * - Permanently Adopted
+ * - Contacted Welfare Organizations
+ *
+ * If the status is "Urgent Help Needed", the system sends emails to all
+ * registered welfare organizations.
+ *
  * @route POST /api/reports/create
  * @private Requires authentication
- * @body {Object} location - {latitude, longitude, address}
- * @body {Object} dogDetails - Dog information and appearance
- * @body {String} actionStatus - Current status of the dog
- * @body {Object} adopterDetails (optional) - If permanently adopted
- * @body {Object} tempGuardianDetails (optional) - If temporarily sheltered
- * @body {File[]} files - Media files (max 5, max 1 video)
- * @response {Object} Success message and created report
- * @error 400 Validation errors
- * @error 500 Server error
  */
 
-// --- 1. Create a Report ---
 exports.createReport = async (req, res) => {
   try {
-    // Extract form data from request
+    // Extract form data from the request body
     const {
       location,
       dogDetails,
@@ -81,33 +68,35 @@ exports.createReport = async (req, res) => {
       adopterDetails,
       tempGuardianDetails,
     } = req.body;
+
     const files = req.files || [];
 
-    // VALIDATION: Check file upload limits
-    // Maximum 5 files total to prevent storage abuse
+    // Validate file upload limit
     if (files.length > 5) {
-      return res
-        .status(400)
-        .json({ message: "Maximum upload limit exceeded." });
+      return res.status(400).json({
+        message: "Maximum upload limit exceeded.",
+      });
     }
-    
-    // Check that only 1 video is uploaded (video storage is expensive)
-    const videoCount = files.filter((f) =>
-      f.mimetype.startsWith("video/"),
+
+    // Validate video upload limit
+    const videoCount = files.filter((file) =>
+      file.mimetype.startsWith("video/")
     ).length;
+
     if (videoCount > 1) {
-      return res.status(400).json({ message: "Only 1 video is allowed." });
+      return res.status(400).json({
+        message: "Only 1 video is allowed.",
+      });
     }
 
-    // VALIDATION: Ensure all required fields are present
+    // Validate required fields
     if (!location || !dogDetails || !actionStatus) {
-      return res
-        .status(400)
-        .json({ message: "Please complete all required fields." });
+      return res.status(400).json({
+        message: "Please complete all required fields.",
+      });
     }
 
-    // Parse JSON strings back to objects
-    // FormData converts all data to strings, so we need to parse them back
+    // Parse JSON strings from FormData
     const parsedLocation = JSON.parse(location);
     const parsedDogDetails = JSON.parse(dogDetails);
     const parsedAdopter = adopterDetails ? JSON.parse(adopterDetails) : null;
@@ -115,18 +104,17 @@ exports.createReport = async (req, res) => {
       ? JSON.parse(tempGuardianDetails)
       : null;
 
-    // VALIDATION: Action-specific requirements
-    // If dog is permanently adopted, we need adopter information
+    // Validate permanent adoption details
     if (
       actionStatus === "Permanently Adopted" &&
       (!parsedAdopter?.name || !parsedAdopter?.contact)
     ) {
-      return res
-        .status(400)
-        .json({ message: "Adopter's name and contact details are required." });
+      return res.status(400).json({
+        message: "Adopter's name and contact details are required.",
+      });
     }
-    
-    // If dog is temporarily adopted, we need guardian information
+
+    // Validate temporary guardian details
     if (
       actionStatus === "Temporarily Adopted" &&
       (!parsedTemp?.name || !parsedTemp?.contact)
@@ -138,302 +126,355 @@ exports.createReport = async (req, res) => {
 
     // Process uploaded media files
     const media = files.map((file) => ({
-      url: file.path.replace(/\\/g, "/"), // Convert Windows paths to Unix format
+      url: file.path.replace(/\\/g, "/"),
       fileType: file.mimetype.startsWith("video/") ? "video" : "image",
     }));
 
-    // Determine map color based on action status
-    // This color will display on the map marker
-    let mapColor = "Red"; // Default for urgent situations
-    if (actionStatus === "Permanently Adopted") mapColor = "Green";
-    else if (actionStatus === "Temporarily Adopted") mapColor = "Yellow";
-    else if (actionStatus === "Contacted Welfare Organizations")
-      mapColor = "Blue";
+    // Determine map marker colour
+    const mapColor = getMapColor(actionStatus);
 
-    // Create new report document
+    // Create new report
     const newReport = new Report({
-      reporter: req.user.id,                    // Who is reporting
-      location: parsedLocation,                 // Where dog was found
-      dogDetails: parsedDogDetails,             // Physical description
-      actionStatus,                             // Current outcome
-      mapColor: mapColor,                       // Color for map display
-      adopterDetails: parsedAdopter,            // If permanently adopted
-      tempGuardianDetails: parsedTemp,          // If temporarily sheltered
-      media,                                    // Photos/videos
+      reporter: req.user.id,
+      location: parsedLocation,
+      dogDetails: parsedDogDetails,
+      actionStatus,
+      mapColor,
+      adopterDetails: parsedAdopter,
+      tempGuardianDetails: parsedTemp,
+      media,
     });
 
     // Save report to database
     await newReport.save();
 
-    // Reward system: Add points to user for reporting a stray dog
+    // Award points to the user for submitting a stray dog report
     await User.findByIdAndUpdate(req.user.id, {
       $inc: {
-        rewardPoints: POINTS.REPORT_STRAY,              // Add 25 points
-        "pointsBreakdown.reports": POINTS.REPORT_STRAY, // Track in reports category
+        rewardPoints: POINTS.REPORT_STRAY,
+        "pointsBreakdown.reports": POINTS.REPORT_STRAY,
       },
     });
 
-    // Urgent Action: If dog needs urgent help, alert welfare organizations
+    /**
+     * URGENT EMAIL LOGIC
+     *
+     * If the report status is "Urgent Help Needed", send email alerts
+     * to all registered welfare organizations.
+     *
+     * This is wrapped in try/catch so the report still saves even if email fails.
+     */
     if (actionStatus === "Urgent Help Needed") {
       try {
-        // Send emails to welfare organizations
-        // Wrapped in try/catch because email might fail but report should still save
         await sendUrgentEmailsToOrgs(newReport);
-      } catch (emailErr) {
-        // Log error but don't fail the report creation
-        console.error("Email failed, but report saved:", emailErr);
+      } catch (emailError) {
+        console.error("❌ Urgent email failed, but report was saved.");
+        console.error("Email error:", emailError.message);
       }
     }
 
-    // Return success response with created report
-    res
-      .status(201)
-      .json({ message: "Report submitted successfully", report: newReport });
+    res.status(201).json({
+      message: "Report submitted successfully",
+      report: newReport,
+    });
   } catch (error) {
     console.error("Error creating report:", error);
-    res.status(500).json({ message: "Server error while saving report." });
+    res.status(500).json({
+      message: "Server error while saving report.",
+    });
   }
 };
 
-
-
+// ═══════════════════════════════════════════════════════════════════════════════
 // FUNCTION 2: getSummaryCounts
+// ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Retrieves summary statistics about all reports for dashboard display
- * 
- * Purpose: Show overview of rescue operations by status
- * 
- * Returns:
- * - total: Total number of all dog reports  and counts for each action status:
-
+ * Retrieves summary statistics for dashboard display.
  *
  * @route GET /api/reports/summary
- * @public No authentication required
- * @response {Object} Statistics by action status
- * @error 500 Server error
+ * @public
  */
 
-// --- 2. Get Summary Counts ---
 exports.getSummaryCounts = async (req, res) => {
   try {
-    // Count total reports
     const total = await Report.countDocuments();
-    
-    // Count reports by each action status
+
     const permanentlyAdopted = await Report.countDocuments({
       actionStatus: "Permanently Adopted",
     });
+
     const temporarilyAdopted = await Report.countDocuments({
       actionStatus: "Temporarily Adopted",
     });
+
     const contactedWelfare = await Report.countDocuments({
       actionStatus: "Contacted Welfare Organizations",
     });
+
     const urgentHelp = await Report.countDocuments({
       actionStatus: "Urgent Help Needed",
     });
 
-    // Return counts mapped to map colors
     res.status(200).json({
       total,
-      green: permanentlyAdopted,     // Permanently adopted
-      yellow: temporarilyAdopted,    // Temporary shelter
-      blue: contactedWelfare,        // Welfare contacted
-      red: urgentHelp,               // Urgent help needed
+      green: permanentlyAdopted,
+      yellow: temporarilyAdopted,
+      blue: contactedWelfare,
+      red: urgentHelp,
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Error getting report summary counts:", error);
+    res.status(500).json({
+      message: "Server error",
+    });
   }
 };
 
-
+// ═══════════════════════════════════════════════════════════════════════════════
 // FUNCTION 3: getAllReports
+// ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Retrieves all dog reports for map visualization
- * 
- * Purpose: Fetch all stray dog reports to display on interactive map
- * 
- * Details Included:
- * - Dog information (description, physical characteristics)
- * - Location coordinates and address
- * - Current status and outcome (adoption, shelter, welfare)
- * - Media files (photos and videos)
- * - Reporter information (name/organization)
- * - Map color coding for visual status indication
- * 
- * Populated Data:
- * - Reporter details populated from User collection (name and organization name)
- * 
+ * Retrieves all dog reports for map visualization.
+ *
  * @route GET /api/reports/all
- * @public No authentication required
- * @response {Array} Array of all dog reports with details
- * @error 500 Server error
+ * @public
  */
-// --- 3. Get All Reports (For Map Display) ---
+
 exports.getAllReports = async (req, res) => {
   try {
-    // Fetch all reports and populate reporter name/organization details
     const reports = await Report.find().populate(
       "reporter",
-      "name organizationName",
+      "name organizationName"
     );
-    
-    // Return all reports for map display
+
     res.status(200).json(reports);
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Error getting all reports:", error);
+    res.status(500).json({
+      message: "Server error",
+    });
   }
 };
 
-
-
+// ═══════════════════════════════════════════════════════════════════════════════
 // FUNCTION 4: updateStatus
+// ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Updates the status/outcome of a reported stray dog
- * 
- * Purpose: Track the resolution of stray dog cases from initial report to final outcome
- * 
- * Status Transitions:
- * - "Urgent Help Needed" → Other statuses as situation resolves
- * - "Temporarily Adopted" → "Permanently Adopted" (when temp shelter becomes permanent)
- * - "Contacted Welfare Organizations" → "Permanently Adopted" (if welfare org succeeds)
- * 
- * Process:
- * 1. Find the report by ID
- * 2. Update action status to new status
- * 3. If transitioning to "Permanently Adopted", update adopter details
- * 4. Save updated report
- * 5. Award reward points based on new status (only if status actually changed)
- * 6. Points are tracked in appropriate category for user achievements
- * 
- * Reward Points for Status Updates
- 
- * 
+ * Updates the status/outcome of a reported stray dog.
+ *
+ * This also updates the map colour and awards reward points when appropriate.
+ *
  * @route POST /api/reports/:reportId/update-status
  * @private Requires authentication
- * @param {String} reportId - Report ID to update
- * @body {String} newStatus - New action status
- * @body {Object} actionDetails (optional) - Additional details for the new status
- * @response {Object} Success message and updated report
- * @error 404 Report not found
- * @error 500 Server error
  */
 
-// --- 4. Update Report Status ---
 exports.updateStatus = async (req, res) => {
   try {
-    // Extract report ID and new status from request
     const { reportId } = req.params;
     const { newStatus, actionDetails } = req.body;
 
-    // Find the report by ID
+    if (!newStatus) {
+      return res.status(400).json({
+        message: "New status is required.",
+      });
+    }
+
     const report = await Report.findById(reportId);
-    
-    // Check if report exists
-    if (!report) return res.status(404).json({ message: "Report not found." });
 
-    // Store old status to check if it actually changed
+    if (!report) {
+      return res.status(404).json({
+        message: "Report not found.",
+      });
+    }
+
     const oldStatus = report.actionStatus;
-    
-    // Update to new status
-    report.actionStatus = newStatus;
 
-    // If dog is now permanently adopted, update adopter information
+    // Update status and map colour
+    report.actionStatus = newStatus;
+    report.mapColor = getMapColor(newStatus);
+
+    // Store adopter details if the dog is now permanently adopted
     if (newStatus === "Permanently Adopted") {
       report.adopterDetails = actionDetails;
     }
 
-    // Save the updated report
+    // Store temporary guardian details if the dog is temporarily adopted
+    if (newStatus === "Temporarily Adopted") {
+      report.tempGuardianDetails = actionDetails;
+    }
+
     await report.save();
 
-    // Determine reward points based on new status
+    // Determine reward points based on the new status
     let pointsToAward = 0;
     let category = "";
 
     if (newStatus === "Permanently Adopted") {
-      pointsToAward = POINTS.PERMANENT_ADOPT; // 50 points
+      pointsToAward = POINTS.PERMANENT_ADOPT;
       category = "adoptions";
     } else if (newStatus === "Temporarily Adopted") {
-      pointsToAward = POINTS.TEMP_SHELTER; // 20 points
+      pointsToAward = POINTS.TEMP_SHELTER;
       category = "community";
     } else if (newStatus === "Contacted Welfare Organizations") {
-      pointsToAward = POINTS.CONTACT_WELFARE; // 10 points
+      pointsToAward = POINTS.CONTACT_WELFARE;
       category = "community";
     }
 
-    // Award points only if status actually changed (not duplicate update)
+    // Award points only if the status actually changed
     if (oldStatus !== newStatus && pointsToAward > 0) {
       await User.findByIdAndUpdate(req.user.id, {
         $inc: {
-          rewardPoints: pointsToAward,                          // Add to total
-          [`pointsBreakdown.${category}`]: pointsToAward,       // Track in category
+          rewardPoints: pointsToAward,
+          [`pointsBreakdown.${category}`]: pointsToAward,
         },
       });
     }
 
-    // Return success response with updated report
-    res.status(200).json({ message: "Status updated successfully", report });
+    /**
+     * OPTIONAL URGENT EMAIL LOGIC:
+     *
+     * If a report is updated to "Urgent Help Needed", welfare organizations
+     * will also be notified.
+     */
+    if (oldStatus !== newStatus && newStatus === "Urgent Help Needed") {
+      try {
+        await sendUrgentEmailsToOrgs(report);
+      } catch (emailError) {
+        console.error("❌ Urgent email failed after status update.");
+        console.error("Email error:", emailError.message);
+      }
+    }
+
+    res.status(200).json({
+      message: "Status updated successfully",
+      report,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Error updating report status:", error);
+    res.status(500).json({
+      message: "Server error",
+    });
   }
 };
 
-
+// ═══════════════════════════════════════════════════════════════════════════════
 // HELPER FUNCTION: sendUrgentEmailsToOrgs
+// ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Sends urgent alert emails to all registered welfare organizations
- * 
- * Purpose: Notify welfare organizations about dogs in urgent need of help
- * 
- * Process:
- * 1. Query database for all users with "organization" role
- * 2. Extract organization email addresses
- * 3. Send email to each organization with:
- *    - Dog location (address or coordinates)
- *    - Dog description
- *    - Link to view on dashboard
- * 
- * @param {Object} reportDetails - The report document to include in alert
- * @throws Logs error but doesn't crash if email fails
- * 
- * NOTE: This function is called automatically when a report with status
- *       "Urgent Help Needed" is created
+ * Sends urgent alert emails to all registered welfare organizations.
+ *
+ * This function:
+ * 1. Finds all users with role "organization"
+ * 2. Filters out users without email addresses
+ * 3. Sends each organization an urgent email
+ * 4. Logs results clearly in Render logs
+ *
+ * IMPORTANT:
+ * This works only if organization users in MongoDB have:
+ * role: "organization"
  */
-// --- Helper: Send Emails to Organizations ---
+
 const sendUrgentEmailsToOrgs = async (reportDetails) => {
   try {
-    // Fetch all users with role "organization" and their emails
-    const orgs = await User.find({ role: "organization" }).select("email name");
-    
-    // DEBUG: Log how many organizations found
-    console.log(`🔍 DEBUG: Found ${orgs.length} organizations to notify`);
-    console.log(`📧 Organizations: ${orgs.map(o => o.email).join(", ")}`);
+    // Fetch all welfare organization users
+    const orgs = await User.find({ role: "organization" }).select(
+      "email name organizationName"
+    );
 
-    if (orgs.length === 0) {
-      console.warn("⚠️ No welfare organizations registered in the system!");
+    console.log(`🔍 Found ${orgs.length} organizations to notify.`);
+
+    if (!orgs || orgs.length === 0) {
+      console.warn("⚠️ No welfare organizations registered in the system.");
       return;
     }
 
-    // Send urgent alert email to each organization
-    for (const org of orgs) {
-      console.log(`📤 Sending email to organization: ${org.email}`);
-      
-      const emailResult = await sendEmail({
-        to: org.email,
-        subject: "URGENT: Stray Dog Needs Immediate Help!",
-        text: `An urgent report has been filed near ${reportDetails.location.address || "the attached coordinates"}. \n\nDog Description: ${reportDetails.dogDetails.description}\n\nPlease log in to the StrayCare Dashboard to view the exact location and photos.`,
-      });
-      
-      console.log(`✅ Email sent to ${org.email}`);
+    // Remove organizations without email addresses
+    const validOrgs = orgs.filter((org) => org.email);
+
+    if (validOrgs.length === 0) {
+      console.warn(
+        "⚠️ Organizations found, but none have valid email addresses."
+      );
+      return;
     }
-    
-    console.log(`✅ All ${orgs.length} organizations have been notified!`);
+
+    console.log(
+      `📧 Sending urgent emails to: ${validOrgs
+        .map((org) => org.email)
+        .join(", ")}`
+    );
+
+    // Prepare report details safely
+    const locationText =
+      reportDetails.location?.address ||
+      `Latitude: ${reportDetails.location?.latitude || "Not provided"}, Longitude: ${
+        reportDetails.location?.longitude || "Not provided"
+      }`;
+
+    const dogDescription =
+      reportDetails.dogDetails?.description || "No description provided.";
+
+    const dogBreed = reportDetails.dogDetails?.breed || "Not provided";
+
+    const dogAge = reportDetails.dogDetails?.age || "Not provided";
+
+    const dogColor = reportDetails.dogDetails?.color || "Not provided";
+
+    /**
+     * Send emails one by one through sendEmail.js.
+     *
+     * Each organization receives a separate email for privacy.
+     */
+    const emailTasks = validOrgs.map((org) => {
+      const organizationName =
+        org.organizationName || org.name || "Welfare Organization";
+
+      return sendEmail({
+        to: org.email,
+        subject: "URGENT: Stray Dog Needs Immediate Help",
+        text: `
+Hello ${organizationName},
+
+An urgent stray dog report has been submitted through the StrayCare platform.
+
+Report Details:
+Status: Urgent Help Needed
+Location: ${locationText}
+Breed: ${dogBreed}
+Age: ${dogAge}
+Colour: ${dogColor}
+Description: ${dogDescription}
+
+Please log in to the StrayCare dashboard to view the full report, exact location, and uploaded photos/videos.
+
+Your quick response could help save this dog's life.
+
+Best regards,
+StrayCare Team
+        `,
+      });
+    });
+
+    const results = await Promise.allSettled(emailTasks);
+
+    results.forEach((result, index) => {
+      const orgEmail = validOrgs[index].email;
+
+      if (result.status === "fulfilled") {
+        console.log(`📧 Urgent email process completed for: ${orgEmail}`);
+      } else {
+        console.error(`❌ Failed to send urgent email to: ${orgEmail}`);
+        console.error(result.reason);
+      }
+    });
+
+    console.log("✅ Urgent email notification process finished.");
   } catch (error) {
     console.error("❌ Failed to send urgent emails to organizations:", error);
-    console.error("Error details:", error.message);
+    console.error("Error message:", error.message);
   }
-};
+};g

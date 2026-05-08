@@ -3,7 +3,7 @@
  * ADOPTION LISTING MODEL
  
  * 
- * This model represents a dog registered  for adoption
+ * This model represents a dog registered for adoption
  * 
 
  * 
@@ -13,7 +13,7 @@
  * 3. "Adopted": Adoption confirmed and completed
  * 
  * Reward Points:
- * - Lister gets points when dog is adopted (30 points)
+ * - Registered person gets points when dog is adopted (30 points)
  * - Adopter gets points when they adopt (50 points)
  */
 
@@ -21,9 +21,9 @@ const mongoose = require("mongoose");
 
 const adoptionListingSchema = new mongoose.Schema(
   {
-    // ─── LISTER INFORMATION ─────────────────────────────────────────────────
+    // ─── REGISTERED PERSON INFORMATION ─────────────────────────────────────────────────
     /**
-     * Reference to the User who created this listing
+     * Reference to the User who registered this dog
      * - The person offering the dog for adoption
      * - Receives reward points when dog is adopted
      * - Can confirm adoption requests for this dog
@@ -66,9 +66,9 @@ const adoptionListingSchema = new mongoose.Schema(
       description: { type: String },
     },
 
-    // ─── LISTER (PERSON OFFERING DOG) DETAILS ───────────────────────────────
+    // ─── REGISTERED PERSON (PERSON OFFERING DOG) DETAILS ───────────────────────────────
     /**
-     * Information about the person listing the dog
+     * Information about the person who registered the dog
      * - name: Contact person's name
      * - email: Email address for adoption inquiries
      * - contactNumber: Phone number for interested adopters to reach out
