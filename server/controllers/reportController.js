@@ -407,17 +407,33 @@ exports.updateStatus = async (req, res) => {
 const sendUrgentEmailsToOrgs = async (reportDetails) => {
   try {
     // Fetch all users with role "organization" and their emails
-    const orgs = await User.find({ role: "organization" }).select("email");
+    const orgs = await User.find({ role: "organization" }).select("email name");
+    
+    // DEBUG: Log how many organizations found
+    console.log(`🔍 DEBUG: Found ${orgs.length} organizations to notify`);
+    console.log(`📧 Organizations: ${orgs.map(o => o.email).join(", ")}`);
+
+    if (orgs.length === 0) {
+      console.warn("⚠️ No welfare organizations registered in the system!");
+      return;
+    }
 
     // Send urgent alert email to each organization
     for (const org of orgs) {
-      await sendEmail({
+      console.log(`📤 Sending email to organization: ${org.email}`);
+      
+      const emailResult = await sendEmail({
         to: org.email,
         subject: "URGENT: Stray Dog Needs Immediate Help!",
         text: `An urgent report has been filed near ${reportDetails.location.address || "the attached coordinates"}. \n\nDog Description: ${reportDetails.dogDetails.description}\n\nPlease log in to the StrayCare Dashboard to view the exact location and photos.`,
       });
+      
+      console.log(`✅ Email sent to ${org.email}`);
     }
+    
+    console.log(`✅ All ${orgs.length} organizations have been notified!`);
   } catch (error) {
-    console.error("Failed to send urgent emails to organizations:", error);
+    console.error("❌ Failed to send urgent emails to organizations:", error);
+    console.error("Error details:", error.message);
   }
 };
