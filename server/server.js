@@ -48,7 +48,16 @@ const app = express();
  * Default CORS config allows requests from all origins
  * (In production, you may want to restrict to specific frontend URL)
  */
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173", // Local development
+    "http://localhost:3000", // Alternative local port
+    "https://stray-care-platform.vercel.app", // Production Vercel frontend
+  ],
+  credentials: true, // Allow cookies/auth headers
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
 /**
  * JSON Parser Middleware
