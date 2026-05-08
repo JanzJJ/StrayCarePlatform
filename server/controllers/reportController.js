@@ -477,4 +477,4 @@ StrayCare Team
     console.error("❌ Failed to send urgent emails to organizations:", error);
     console.error("Error message:", error.message);
   }
-};g
+};

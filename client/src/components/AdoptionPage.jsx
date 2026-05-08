@@ -30,12 +30,12 @@
  *    - Email confirmation to requester
  *    - Confirmation email from organization
  * 
- * 4. LIST A DOG (Organizations)
+ * 4. REGISTER A DOG (Organizations)
  *    - Modal form to add new adoptable dog
  *    - Upload photos (multiple)
  *    - Fill: name, breed, age, gender, location, description
- *    - Lister contact info (name, email, phone)
- *    - Creates listing linked to user account
+ *    - Registered person contact info (name, email, phone)
+ *    - Creates registration linked to user account
  * 
  * 5. STATISTICS DASHBOARD
  *    - Total dogs in system
@@ -48,7 +48,7 @@
  * • counts: Statistics object {totalDogs, availableDogs, successfullyAdopted, pendingRequests}
  * • Search/Filter states: searchQuery, selectedBreed, selectedAge, selectedLocation, selectedStatus
  * • Modal states: showListDogModal, showDetailModal, showRequestConfirmation, showConfirmationEmail
- * • Form states: Dog details, photo uploads, requester details, lister details
+ * • Form states: Dog details, photo uploads, requester details, registered person details
  * 
  * API ENDPOINTS:
  * GET    /api/adoption                      - Fetch all dog listings
@@ -210,10 +210,10 @@ export default function AdoptionPage() {
    * • dogLocation: City from sriLankanCities list
    * • dogDescription: Long text description (behavior, health, etc)
    * 
-   * LISTER DETAILS:
-   * • listerName: Organization/person name
-   * • listerEmail: Contact email
-   * • listerPhone: Contact phone
+   * REGISTERED PERSON DETAILS:
+   * • registeredPersonName: Organization/person name
+   * • registeredPersonEmail: Contact email
+   * • registeredPersonPhone: Contact phone
    */
   const [dogPhotos, setDogPhotos] = useState([]);
   const [photoPreviews, setPhotoPreviews] = useState([]);
@@ -326,7 +326,7 @@ export default function AdoptionPage() {
     fetchAdoptionData();
   }, []);
 
-  // --- 2. LIST A DOG ---
+  // --- 2. REGISTER A DOG ---
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
     if (dogPhotos.length + files.length > 3) {
@@ -696,7 +696,7 @@ export default function AdoptionPage() {
               className="inline-flex items-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-full shadow-lg transition-colors border-none cursor-pointer"
             >
               <Plus className="h-5 w-5" />
-              <span className="font-bold">List a Dog for Adoption</span>
+              <span className="font-bold">Register a Dog for Adoption</span>
             </button>
           </div>
         </div>
@@ -927,7 +927,7 @@ export default function AdoptionPage() {
                 <div className="bg-white bg-opacity-20 rounded-full p-2">
                   <Plus className="h-6 w-6" />
                 </div>
-                <h2 className="text-2xl font-bold">Register  a Dog for Adoption</h2>
+                <h2 className="text-2xl font-bold">Register a Dog for Adoption</h2>
               </div>
               <button
                 onClick={() => {
@@ -1117,7 +1117,7 @@ export default function AdoptionPage() {
                 </div>
               </div>
 
-              {/* Lister Details */}
+              {/* Registered Person Details */}
               <div className="border-t border-gray-100 pt-8">
                 <h3 className="text-lg text-gray-800 font-bold mb-6 flex items-center">
                   <User className="h-5 w-5 text-blue-500 mr-2" /> Your Contact
