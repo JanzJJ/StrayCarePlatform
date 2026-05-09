@@ -224,9 +224,9 @@ StrayCare Team
           `,
         });
 
-        console.log("📧 Adoption request email sent to lister.");
+        console.log("📧 Adoption request email sent to registered person.");
       } else {
-        console.log("⚠️ Lister email not found. Adoption request email skipped.");
+        console.log("⚠️ Registered person email not found. Adoption request email skipped.");
       }
     } catch (emailError) {
       console.error("❌ Failed to send adoption request email:", emailError.message);
@@ -289,7 +289,7 @@ exports.confirmAdoption = async (req, res) => {
     /**
      * EMAIL 2 AND 3:
      * Send adoption confirmation emails to both:
-     * 1. Dog lister
+     * 1. Registered person
      * 2. Adopter/requester
      *
      * Promise.allSettled is used so one failed email does not stop the whole process.
