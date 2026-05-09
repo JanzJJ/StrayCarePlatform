@@ -31,10 +31,16 @@ import {
   Loader2,
 } from "lucide-react";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
-
+// ─────────────────────────────────────────────────────────────
+// Backend base URL for all user profile related API requests.
+// Keeping it in one constant makes it easier to update later.
+// ─────────────────────────────────────────────────────────────
 const API_BASE = "https://straycareplatform.onrender.com/api/users";
 
+// ─────────────────────────────────────────────────────────────
+// Reusable API helper for authenticated user requests.
+// It automatically attaches JSON headers and the JWT token.
+// ─────────────────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem("token");
   return fetch(`${API_BASE}${path}`, {
@@ -47,6 +53,10 @@ async function apiFetch(path, options = {}) {
   });
 }
 
+// ─────────────────────────────────────────────────────────────
+// Converts backend action status values into user-friendly labels.
+// This is used when displaying the user's reported dogs.
+// ─────────────────────────────────────────────────────────────
 function getActionLabel(actionStatus) {
   switch (actionStatus) {
     case "Permanently Adopted":
@@ -62,6 +72,10 @@ function getActionLabel(actionStatus) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Returns Tailwind classes for each report status badge.
+// This makes different report statuses visually clear.
+// ─────────────────────────────────────────────────────────────
 function getActionColor(actionStatus) {
   switch (actionStatus) {
     case "Permanently Adopted":
@@ -77,6 +91,10 @@ function getActionColor(actionStatus) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Returns the small coloured dot used beside report cards.
+// Each status gets a matching colour.
+// ─────────────────────────────────────────────────────────────
 function getStatusDot(actionStatus) {
   switch (actionStatus) {
     case "Permanently Adopted":
@@ -92,6 +110,10 @@ function getStatusDot(actionStatus) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Returns a gradient colour for achievement categories.
+// Used in the achievements list inside the overview tab.
+// ─────────────────────────────────────────────────────────────
 function getCategoryColor(category) {
   switch (category) {
     case "adoption":
@@ -107,6 +129,9 @@ function getCategoryColor(category) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Returns the correct icon for each achievement category.
+// ─────────────────────────────────────────────────────────────
 function getCategoryIcon(category) {
   switch (category) {
     case "adoption":
@@ -122,21 +147,32 @@ function getCategoryIcon(category) {
   }
 }
 
-// ─── Component ────────────────────────────────────────────────────────────
-
+// ─────────────────────────────────────────────────────────────
+// UserProfile is a modal component that shows the user's profile,
+// points, reports, sheltered dogs, and account settings.
+// ─────────────────────────────────────────────────────────────
 export function UserProfile({ userEmail, onClose }) {
+  // ─────────────────────────────────────────────────────────────
+  // UI state for tabs, edit mode, password visibility, and delete confirmation.
+  // ─────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState("overview");
   const [editMode, setEditMode] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  // ── Data state ──────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Main profile data state.
+  // profileData stores the backend response for user details, stats,
+  // achievements, reports, and sheltered dogs.
+  // ─────────────────────────────────────────────────────────────
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ── Form state ──────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Form state for editing personal details and changing password.
+  // ─────────────────────────────────────────────────────────────
   const [formValues, setFormValues] = useState({
     name: "",
     email: "",
@@ -148,11 +184,18 @@ export function UserProfile({ userEmail, onClose }) {
     newPassword: "",
   });
 
+  // ─────────────────────────────────────────────────────────────
+  // Save/update feedback state.
+  // saving controls button loading; saveError/saveSuccess show feedback banners.
+  // ─────────────────────────────────────────────────────────────
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(null);
 
-  // ── Fetch profile ───────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Fetch the logged-in user's profile from the backend.
+  // useCallback is used because this function is also called after updates.
+  // ─────────────────────────────────────────────────────────────
   const fetchProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -177,11 +220,15 @@ export function UserProfile({ userEmail, onClose }) {
     }
   }, []);
 
+  // Fetch the user profile when the modal first opens.
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
-  // ── Sync formValues with profileData whenever it changes ────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Keep form values synced with the latest profile data.
+  // This is useful after refreshing profile data from the backend.
+  // ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (profileData) {
       setFormValues({
@@ -193,13 +240,17 @@ export function UserProfile({ userEmail, onClose }) {
     }
   }, [profileData]);
 
-  // ── Derived display values ───────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Derived values for gamification display.
+  // Level increases every 500 points and progress shows distance to next level.
+  // ─────────────────────────────────────────────────────────────
   const totalPoints = profileData?.user.rewardPoints ?? 0;
   const level = Math.floor(totalPoints / 500) + 1;
   const pointsToNextLevel = level * 500 - totalPoints;
   const progress = ((totalPoints % 500) / 500) * 100;
   const displayName = profileData?.user.name || userEmail.split("@")[0];
 
+  // Points breakdown cards shown in the overview tab.
   const pointsBreakdownDisplay = [
     {
       category: "Adoptions",
@@ -227,13 +278,18 @@ export function UserProfile({ userEmail, onClose }) {
     },
   ];
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
-
+  // ─────────────────────────────────────────────────────────────
+  // Clears success/error messages shown in the global feedback banner.
+  // ─────────────────────────────────────────────────────────────
   const clearFeedback = () => {
     setSaveSuccess(null);
     setSaveError(null);
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // Saves edited profile details to the backend.
+  // Email is not updated here because the email field is disabled.
+  // ─────────────────────────────────────────────────────────────
   const handleSaveProfile = async () => {
     setSaving(true);
     clearFeedback();
@@ -258,6 +314,10 @@ export function UserProfile({ userEmail, onClose }) {
     }
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // Sends current and new password to the backend to update password.
+  // Both password fields must be filled before the request is sent.
+  // ─────────────────────────────────────────────────────────────
   const handleChangePassword = async () => {
     if (!passwordForm.currentPassword || !passwordForm.newPassword) {
       setSaveError("Please fill in both password fields");
@@ -281,6 +341,10 @@ export function UserProfile({ userEmail, onClose }) {
     }
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // Converts a temporarily sheltered dog into a permanent adoption.
+  // After success, profile data is refreshed and points feedback is shown.
+  // ─────────────────────────────────────────────────────────────
   const handleUpgradeToPermanent = async (reportId) => {
     clearFeedback();
     try {
@@ -298,6 +362,10 @@ export function UserProfile({ userEmail, onClose }) {
     }
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // Deletes the user's account from the backend.
+  // If successful, the local token is removed and the modal is closed.
+  // ─────────────────────────────────────────────────────────────
   const handleDeleteAccount = async () => {
     clearFeedback();
     try {
@@ -314,7 +382,10 @@ export function UserProfile({ userEmail, onClose }) {
     }
   };
 
-  // ── Tab config ───────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Tab configuration for the profile modal.
+  // Each tab has an id, label, and icon.
+  // ─────────────────────────────────────────────────────────────
   const tabs = [
     { id: "overview", label: "Overview", icon: User },
     { id: "reports", label: "My Reports", icon: AlertCircle },
@@ -322,7 +393,9 @@ export function UserProfile({ userEmail, onClose }) {
     { id: "account", label: "Account", icon: Settings },
   ];
 
-  // ── Loading state ────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Loading state shown while profile data is being fetched.
+  // ─────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <motion.div
@@ -340,7 +413,10 @@ export function UserProfile({ userEmail, onClose }) {
     );
   }
 
-  // ── Error state ──────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Error state shown if the profile request fails.
+  // The user can retry loading the profile.
+  // ─────────────────────────────────────────────────────────────
   if (error) {
     return (
       <motion.div
@@ -365,7 +441,11 @@ export function UserProfile({ userEmail, onClose }) {
     );
   }
 
-  // ── Main render ───────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Main profile modal render.
+  // The outer layer closes the modal when clicked, while the inner card
+  // stops click propagation so it does not close accidentally.
+  // ─────────────────────────────────────────────────────────────
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -381,7 +461,7 @@ export function UserProfile({ userEmail, onClose }) {
         className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ── Header ─────────────────────────────────────────────────────── */}
+        {/* Profile header with avatar, level, points, and progress bar */}
         <div className="relative bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 p-8">
           <button
             onClick={onClose}
@@ -425,7 +505,7 @@ export function UserProfile({ userEmail, onClose }) {
             </div>
           </div>
 
-          {/* Progress bar */}
+          {/* Level progress bar */}
           <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-white/90">
@@ -446,7 +526,7 @@ export function UserProfile({ userEmail, onClose }) {
           </div>
         </div>
 
-        {/* ── Tab navigation ──────────────────────────────────────────────── */}
+        {/* Tab navigation inside the profile modal */}
         <div className="bg-gray-50 border-b border-gray-200 px-6">
           <div className="flex space-x-1">
             {tabs.map((tab) => {
@@ -469,7 +549,7 @@ export function UserProfile({ userEmail, onClose }) {
           </div>
         </div>
 
-        {/* ── Global feedback banner ───────────────────────────────────────── */}
+        {/* Global success/error feedback banner */}
         <AnimatePresence>
           {(saveSuccess || saveError) && (
             <motion.div
@@ -495,10 +575,10 @@ export function UserProfile({ userEmail, onClose }) {
           )}
         </AnimatePresence>
 
-        {/* ── Scrollable content ───────────────────────────────────────────── */}
+        {/* Scrollable tab content area */}
         <div className="flex-1 overflow-y-auto">
           <AnimatePresence mode="wait">
-            {/* ────────────────── OVERVIEW TAB ────────────────── */}
+            {/* OVERVIEW TAB: points, stats, achievements, and point guide */}
             {activeTab === "overview" && (
               <motion.div
                 key="overview"
@@ -507,7 +587,7 @@ export function UserProfile({ userEmail, onClose }) {
                 exit={{ opacity: 0, y: -20 }}
                 className="p-6"
               >
-                {/* Stats summary */}
+                {/* Summary cards for adopted, sheltered, and reported dogs */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                   <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
                     <div className="flex items-center justify-between mb-2">
@@ -546,7 +626,7 @@ export function UserProfile({ userEmail, onClose }) {
                   </div>
                 </div>
 
-                {/* Points breakdown */}
+                {/* Points breakdown by category */}
                 <div className="mb-6">
                   <div className="flex items-center space-x-2 mb-4">
                     <TrendingUp className="h-5 w-5 text-orange-600" />
@@ -579,7 +659,7 @@ export function UserProfile({ userEmail, onClose }) {
                   </div>
                 </div>
 
-                {/* Achievements */}
+                {/* Recent achievements list */}
                 <div>
                   <div className="flex items-center space-x-2 mb-4">
                     <Award className="h-5 w-5 text-orange-600" />
@@ -642,7 +722,7 @@ export function UserProfile({ userEmail, onClose }) {
                   )}
                 </div>
 
-                {/* How to earn points */}
+                {/* Explains the actions that earn reward points */}
                 <div className="mt-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6">
                   <div className="flex items-center space-x-2 mb-4">
                     <Gift className="h-5 w-5 text-orange-600" />
@@ -714,7 +794,7 @@ export function UserProfile({ userEmail, onClose }) {
               </motion.div>
             )}
 
-            {/* ────────────────── MY REPORTS TAB ────────────────── */}
+            {/* REPORTS TAB: user's submitted stray dog reports */}
             {activeTab === "reports" && (
               <motion.div
                 key="reports"
@@ -802,7 +882,7 @@ export function UserProfile({ userEmail, onClose }) {
               </motion.div>
             )}
 
-            {/* ────────────────── SHELTERED DOGS TAB ────────────────── */}
+            {/* SHELTERED DOGS TAB: dogs under temporary care */}
             {activeTab === "sheltered" && (
               <motion.div
                 key="sheltered"
@@ -878,6 +958,7 @@ export function UserProfile({ userEmail, onClose }) {
                           </div>
                         )}
 
+                        {/* Button to convert temporary sheltering into permanent adoption */}
                         <div className="bg-white rounded-lg p-4 border-2 border-green-200">
                           <div className="flex items-start space-x-3 mb-3">
                             <Check className="h-5 w-5 text-green-600 mt-0.5" />
@@ -907,7 +988,7 @@ export function UserProfile({ userEmail, onClose }) {
               </motion.div>
             )}
 
-            {/* ────────────────── ACCOUNT TAB ────────────────── */}
+            {/* ACCOUNT TAB: edit profile, change password, and delete account */}
             {activeTab === "account" && (
               <motion.div
                 key="account"
@@ -916,7 +997,7 @@ export function UserProfile({ userEmail, onClose }) {
                 exit={{ opacity: 0, y: -20 }}
                 className="p-6"
               >
-                {/* Header row */}
+                {/* Header row with edit/save/cancel controls */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-2xl font-bold text-gray-800">
@@ -968,7 +1049,7 @@ export function UserProfile({ userEmail, onClose }) {
                   </p>
                 </div>
 
-                {/* Personal information */}
+                {/* Personal information form */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
                   <h4 className="font-semibold text-gray-800 mb-4">
                     Personal Information
@@ -1040,7 +1121,7 @@ export function UserProfile({ userEmail, onClose }) {
                   </div>
                 </div>
 
-                {/* Change password */}
+                {/* Change password form */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
                   <h4 className="font-semibold text-gray-800 mb-4">
                     Change Password
@@ -1131,7 +1212,7 @@ export function UserProfile({ userEmail, onClose }) {
                   </div>
                 </div>
 
-                {/* Danger zone */}
+                {/* Danger zone for permanent account deletion */}
                 <div className="bg-red-50 rounded-xl border-2 border-red-200 p-6">
                   <h4 className="font-semibold text-red-800 mb-2">
                     Danger Zone

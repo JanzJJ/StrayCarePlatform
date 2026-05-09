@@ -1,7 +1,8 @@
+// Core React and routing imports
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// Import all your pages and components
+// Page and component imports
 import WelcomeLandingPage from "./components/WelcomeLandingPage";
 import AuthPage from "./components/AuthPage";
 import Dashboard from "./components/Dashboard";
@@ -13,22 +14,25 @@ import { DiseaseDetectionPage } from "./components/DiseasePrediction";
 import { AdminDashboard } from "./components/AdminDashboard"; // <-- IMPORTANT: Import the new Admin Dashboard
 
 export default function App() {
+  // Initialize user state from localStorage (persist login across sessions)
   const [user, setUser] = useState(() => {
     const loggedInUser = localStorage.getItem("user");
     return loggedInUser ? JSON.parse(loggedInUser) : null;
   });
 
+  // Handle successful login by updating user state
   const handleLoginSuccess = (userData) => {
     setUser(userData);
   };
 
+  // Clear user data and logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
   };
 
-  // FIX: Safely check for "admin" regardless of if it's stored as "Admin" or "admin"
+  // Check if user has admin role (case-insensitive) from different possible locations in user object
   const isAdmin =
     user &&
     ((user.role && user.role.toLowerCase() === "admin") ||
@@ -36,21 +40,22 @@ export default function App() {
         user.user.role &&
         user.user.role.toLowerCase() === "admin"));
 
-  // Safely grab the role to pass to Navigation
+  // Extract user role safely for passing to Navigation component
   const currentRole = (user?.role || user?.user?.role)?.toLowerCase() || "user";
 
   return (
     <BrowserRouter>
-      {/* Navigation Bar */}
+      {/* Navigation bar - passes authentication and role info */}
       <Navigation
         isAuthenticated={!!user}
         userEmail={user?.email || user?.user?.email}
-        accountType={currentRole} // Passed safely in lowercase
+        accountType={currentRole}
         onLogout={handleLogout}
       />
 
+      {/* Main routes */}
       <Routes>
-        {/* Welcome Page */}
+        {/* Home - redirects based on auth status and role */}
         <Route
           path="/"
           element={
@@ -69,7 +74,7 @@ export default function App() {
           }
         />
 
-        {/* Auth Page */}
+        {/* Authentication page */}
         <Route
           path="/auth"
           element={
@@ -85,7 +90,7 @@ export default function App() {
           }
         />
 
-        {/* Admin Dashboard: Protected! Only Admins allowed */}
+        {/* Admin dashboard - admin only */}
         <Route
           path="/admin"
           element={
@@ -101,12 +106,11 @@ export default function App() {
           }
         />
 
-        {/* Regular Dashboard Page: Protected! */}
+        {/* User dashboard - protected route */}
         <Route
           path="/dashboard"
           element={
             user ? (
-              // If an admin tries to go to the regular dashboard, kick them to the admin dashboard
               isAdmin ? (
                 <Navigate to="/admin" />
               ) : (
@@ -118,31 +122,31 @@ export default function App() {
           }
         />
 
-        {/* Reporting Page: Protected! */}
+        {/* Report submission page - protected route */}
         <Route
           path="/report"
           element={user ? <ReportingPage /> : <Navigate to="/auth" />}
         />
 
-        {/* Adoption Page: Protected! */}
+        {/* Pet adoption listing page - protected route */}
         <Route
           path="/adoption"
           element={user ? <AdoptionPage /> : <Navigate to="/auth" />}
         />
 
-        {/* Information Centre Page: Protected! */}
+        {/* Information and resources center - protected route */}
         <Route
           path="/information"
           element={user ? <InformationCentre /> : <Navigate to="/auth" />}
         />
 
-        {/* Disease Detection Page: Protected! */}
+        {/* Disease detection/prediction page - protected route */}
         <Route
           path="/disease-detection"
           element={user ? <DiseaseDetectionPage /> : <Navigate to="/auth" />}
         />
 
-        {/* Catch-all */}
+        {/* Catch-all route - redirect unknown paths to home */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>

@@ -20,20 +20,33 @@ import {
 } from "lucide-react";
 
 export default function InformationCentre() {
+  // ─────────────────────────────────────────────────────────────
+  // activeTab controls which section is currently displayed:
+  // health, adoption, services, or welfare.
+  // ─────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState("health");
 
-  // States for fetching live data
+  // ─────────────────────────────────────────────────────────────
+  // Live data state:
+  // welfareOrgs comes from MongoDB through the backend.
+  // services comes from Google Maps/Places through the backend.
+  // Loading states are used to show waiting messages while data loads.
+  // ─────────────────────────────────────────────────────────────
   const [welfareOrgs, setWelfareOrgs] = useState([]);
   const [services, setServices] = useState([]);
   const [isServicesLoading, setIsServicesLoading] = useState(false);
   const [isOrgsLoading, setIsOrgsLoading] = useState(true);
 
-  // Filters
+  // ─────────────────────────────────────────────────────────────
+  // Filter state for the services, welfare organizations, and breed
+  // information sections.
+  // ─────────────────────────────────────────────────────────────
   const [selectedPlaceType, setSelectedPlaceType] = useState("petshop");
   const [selectedCity, setSelectedCity] = useState("Colombo");
   const [welfareSearchQuery, setWelfareSearchQuery] = useState("");
   const [selectedBreed, setSelectedBreed] = useState("General/Stray Dogs");
 
+  // City options used in the live Google Maps services search.
   const sriLankanCities = [
     "Colombo",
     "Kandy",
@@ -46,7 +59,10 @@ export default function InformationCentre() {
     "Nuwara Eliya",
   ];
 
-  // --- 1. Fetch Welfare Orgs from MongoDB on load ---
+  // ─────────────────────────────────────────────────────────────
+  // Fetch registered welfare organizations from the backend when
+  // the Information Centre first loads.
+  // ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const fetchOrganizations = async () => {
       try {
@@ -66,7 +82,11 @@ export default function InformationCentre() {
     fetchOrganizations();
   }, []);
 
-  // --- 2. Fetch Google Maps Services when City or Type changes ---
+  // ─────────────────────────────────────────────────────────────
+  // Fetch nearby services from Google Maps through the backend.
+  // This only runs when the user is viewing the services tab and
+  // changes the selected city or service type.
+  // ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (activeTab !== "services") return; // Only fetch if they are looking at the services tab
 
@@ -90,7 +110,10 @@ export default function InformationCentre() {
     fetchServices();
   }, [selectedPlaceType, selectedCity, activeTab]);
 
-  // Filter Welfare Orgs by Search Query
+  // ─────────────────────────────────────────────────────────────
+  // Filter welfare organizations using the search box.
+  // The search checks organization name, location, and services offered.
+  // ─────────────────────────────────────────────────────────────
   const filteredWelfare = welfareOrgs.filter((org) => {
     const searchLower = welfareSearchQuery.toLowerCase();
     return (
@@ -102,7 +125,11 @@ export default function InformationCentre() {
     );
   });
 
-  // --- Breed Static Info ---
+  // ─────────────────────────────────────────────────────────────
+  // Static breed information used in the Dog Health & Care tab.
+  // This gives users quick guidance for vaccinations, nutrition,
+  // common health issues, and special care needs.
+  // ─────────────────────────────────────────────────────────────
   const breedOptions = [
     "General/Stray Dogs",
     "Golden Retriever",
@@ -333,12 +360,13 @@ export default function InformationCentre() {
     },
   };
 
+  // Get the currently selected breed's information for display.
   const currentBreedInfo = breedHealthInfo[selectedBreed];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 py-12 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Page header with title and short description */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-orange-500 rounded-full mb-6 shadow-lg">
             <BookOpen className="h-10 w-10 text-white" />
@@ -352,7 +380,7 @@ export default function InformationCentre() {
           </p>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Tab navigation for switching between information sections */}
         <div className="flex justify-center mb-8 overflow-x-auto">
           <div className="bg-white rounded-full p-2 shadow-lg inline-flex">
             <button
@@ -382,9 +410,12 @@ export default function InformationCentre() {
           </div>
         </div>
 
-        {/* Tab 1: Dog Health & Care (Static Breed Content) */}
+        {/* ───────────────────────────────────────────────────────────── */}
+        {/* HEALTH TAB: Shows static breed-based health and care guidance */}
+        {/* ───────────────────────────────────────────────────────────── */}
         {activeTab === "health" && (
           <div className="space-y-8">
+            {/* Breed selector changes the static health information displayed below */}
             <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center">
                 <Filter className="h-5 w-5 text-orange-600 mr-2" />
@@ -405,7 +436,7 @@ export default function InformationCentre() {
               </select>
             </div>
 
-            {/* Health Content Grids (Kept your exact design) */}
+            {/* Vaccination schedule section */}
             <section className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex items-center mb-6">
                 <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-full p-3 mr-4">
@@ -463,6 +494,7 @@ export default function InformationCentre() {
               </div>
             </section>
 
+            {/* Nutrition guidance section */}
             <section className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex items-center mb-6">
                 <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-3 mr-4">
@@ -525,6 +557,7 @@ export default function InformationCentre() {
               </div>
             </section>
 
+            {/* Health care and common concerns section */}
             <section className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex items-center mb-6">
                 <div className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full p-3 mr-4">
@@ -594,9 +627,12 @@ export default function InformationCentre() {
           </div>
         )}
 
-        {/* Tab 2: Find Services (LIVE GOOGLE MAPS FETCH) */}
+        {/* ───────────────────────────────────────────────────────────── */}
+        {/* SERVICES TAB: Shows live pet shops or vet clinics from Google Maps */}
+        {/* ───────────────────────────────────────────────────────────── */}
         {activeTab === "services" && (
           <div className="space-y-6">
+            {/* Filter controls for live service search */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <div className="flex items-center mb-4">
                 <Search className="h-6 w-6 text-orange-600 mr-2" />
@@ -631,6 +667,7 @@ export default function InformationCentre() {
               </p>
             </div>
 
+            {/* Loading, empty, or results state for live services */}
             {isServicesLoading ? (
               <div className="bg-white rounded-2xl shadow-lg p-12 text-center animate-pulse">
                 <Search className="h-16 w-16 text-orange-300 mx-auto mb-4 animate-bounce" />
@@ -708,9 +745,12 @@ export default function InformationCentre() {
           </div>
         )}
 
-        {/* Tab 3: Animal Welfare Organizations (LIVE DB FETCH) */}
+        {/* ───────────────────────────────────────────────────────────── */}
+        {/* WELFARE TAB: Shows registered welfare organizations from MongoDB */}
+        {/* ───────────────────────────────────────────────────────────── */}
         {activeTab === "welfare" && (
           <div className="space-y-6">
+            {/* Search box for registered organizations */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <div className="flex items-center mb-4">
                 <Users className="h-6 w-6 text-rose-500 mr-2" />
@@ -734,6 +774,7 @@ export default function InformationCentre() {
               </p>
             </div>
 
+            {/* Loading, empty, or results state for welfare organizations */}
             {isOrgsLoading ? (
               <div className="text-center p-12">
                 <p className="text-gray-500 font-bold">
@@ -816,7 +857,9 @@ export default function InformationCentre() {
           </div>
         )}
 
-        {/* Tab 4: Adoption Guide (Static Guide) */}
+        {/* ───────────────────────────────────────────────────────────── */}
+        {/* ADOPTION TAB: Static first-time adoption advice */}
+        {/* ───────────────────────────────────────────────────────────── */}
         {activeTab === "adoption" && (
           <div className="space-y-8">
             <section className="bg-white rounded-2xl shadow-lg p-8">
@@ -839,6 +882,7 @@ export default function InformationCentre() {
               </div>
             </section>
 
+            {/* Basic first-meeting guidance for adopters */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="bg-white rounded-2xl shadow-lg p-8">
                 <h3 className="text-xl font-bold text-blue-600 mb-4 flex items-center">

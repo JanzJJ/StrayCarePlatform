@@ -24,32 +24,48 @@ import {
 } from "lucide-react";
 
 export function AdminDashboard() {
-  // ─── UI STATE ───────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // UI state controls which tab is active and which item is opened
+  // inside a detail modal.
+  // ─────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAdoption, setSelectedAdoption] = useState(null);
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // ─── FILTER STATE ───────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Filter state stores the selected dropdown values for each tab.
+  // These values are used later when displaying filtered tables.
+  // ─────────────────────────────────────────────────────────────
   const [adoptionFilter, setAdoptionFilter] = useState("All");
   const [reportFilter, setReportFilter] = useState("All");
   const [accountTypeFilter, setAccountTypeFilter] = useState("All");
 
-  // ─── MODAL STATE ────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Delete modal state stores which item is being deleted and the
+  // admin's reason for deleting it.
+  // ─────────────────────────────────────────────────────────────
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteType, setDeleteType] = useState("report");
   const [itemToDelete, setItemToDelete] = useState(null);
   const [deleteReason, setDeleteReason] = useState("");
 
-  // ─── DATA STATE ─────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Main dashboard data received from the backend admin endpoint.
+  // Loading and error states are used to show proper screens to the admin.
+  // ─────────────────────────────────────────────────────────────
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
   const [adoptions, setAdoptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // ─── FETCH DATA ON MOUNT ────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Fetch all admin dashboard data from the backend.
+  // The stored JWT token is sent in the Authorization header so that
+  // only authenticated admins can access this data.
+  // ─────────────────────────────────────────────────────────────
   const fetchDashboardData = async () => {
     setIsLoading(true);
     setErrorMsg("");
@@ -70,6 +86,7 @@ export function AdminDashboard() {
         );
       }
 
+      // Store backend data safely. If a field is missing, use an empty array.
       const data = await response.json();
       setUsers(data.users || []);
       setReports(data.reports || []);
@@ -82,11 +99,15 @@ export function AdminDashboard() {
     }
   };
 
+  // Fetch dashboard data once when the component first loads.
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
-  // ─── DELETE ACTION ──────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Delete selected report or adoption listing.
+  // The admin must enter a reason before deletion is allowed.
+  // ─────────────────────────────────────────────────────────────
   const handleDelete = async () => {
     if (!deleteReason.trim()) {
       alert("Please provide a reason for deletion");
@@ -97,6 +118,7 @@ export function AdminDashboard() {
       const token = localStorage.getItem("token");
       let url = "";
 
+      // Choose correct backend endpoint depending on the item type.
       if (deleteType === "adoption") {
         url = `https://straycareplatform.onrender.com/api/admin/adoptions/${itemToDelete._id}`;
       } else if (deleteType === "report") {
@@ -112,19 +134,24 @@ export function AdminDashboard() {
 
       if (!response.ok) throw new Error("Failed to delete item.");
 
+      // Refresh the dashboard after successful deletion.
       fetchDashboardData();
       alert(`Item has been successfully deleted.\nReason: ${deleteReason}`);
     } catch (err) {
       console.error(err);
       alert("Error deleting item. See console.");
     } finally {
+      // Reset modal state after delete attempt.
       setShowDeleteModal(false);
       setItemToDelete(null);
       setDeleteReason("");
     }
   };
 
-  // ─── HELPER FUNCTIONS ───────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Return Tailwind classes for each status badge.
+  // This keeps table and modal status labels visually consistent.
+  // ─────────────────────────────────────────────────────────────
   const getStatusColor = (status) => {
     switch (status) {
       // Report Statuses
@@ -150,11 +177,15 @@ export function AdminDashboard() {
     }
   };
 
+  // Display a readable label even if the backend status is missing.
   const getStatusLabel = (status) => {
     return status || "Unknown";
   };
 
-  // ─── CALCULATED STATISTICS ──────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Dashboard statistics calculated from fetched data.
+  // These values are displayed in the overview cards.
+  // ─────────────────────────────────────────────────────────────
   const totalAdoptions = adoptions.filter((a) => a.status === "Adopted").length;
   const pendingAdoptions = adoptions.filter(
     (a) => a.status === "Pending",
@@ -171,7 +202,10 @@ export function AdminDashboard() {
   ).length;
   const activeUsersTotal = users.length;
 
-  // ─── FILTER LOGIC ───────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Filter adoptions by search text and selected status.
+  // Search checks dog name and adopter/requester name.
+  // ─────────────────────────────────────────────────────────────
   const filteredAdoptions = adoptions.filter((adoption) => {
     const q = searchQuery.toLowerCase();
     const dogNameMatch = (adoption.dogDetails?.name || "")
@@ -185,6 +219,8 @@ export function AdminDashboard() {
     return (dogNameMatch || adopterMatch) && filterMatch;
   });
 
+  // Filter reports by search text and selected action status.
+  // Search checks report location and dog description.
   const filteredReports = reports.filter((report) => {
     const q = searchQuery.toLowerCase();
     const locMatch = (report.location?.address || "").toLowerCase().includes(q);
@@ -197,6 +233,8 @@ export function AdminDashboard() {
     return (locMatch || descMatch) && filterMatch;
   });
 
+  // Filter users by search text and selected account type.
+  // Search checks user/organization name and email address.
   const filteredUsers = users.filter((user) => {
     const q = searchQuery.toLowerCase();
     const nameMatch = (user.name || user.organizationName || "")
@@ -209,7 +247,9 @@ export function AdminDashboard() {
     return (nameMatch || emailMatch) && accountMatch;
   });
 
-  // ─── LOADING & ERROR SCREENS ────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Loading screen shown while admin dashboard data is being fetched.
+  // ─────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -223,6 +263,7 @@ export function AdminDashboard() {
     );
   }
 
+  // Error screen shown if the admin API request fails.
   if (errorMsg) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -237,7 +278,7 @@ export function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-orange-50 via-amber-50 to-yellow-50">
-      {/* Header */}
+      {/* Header section with dashboard title and admin status badge */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
@@ -261,7 +302,7 @@ export function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tab Navigation */}
+        {/* Tab navigation controls which dashboard section is displayed */}
         <div className="bg-white rounded-xl shadow-sm p-2 mb-6 flex gap-2 overflow-x-auto">
           <button
             onClick={() => setActiveTab("overview")}
@@ -310,11 +351,11 @@ export function AdminDashboard() {
         </div>
 
         {/* ───────────────────────────────────────────────────────────────── */}
-        {/* OVERVIEW TAB */}
+        {/* OVERVIEW TAB: Shows main dashboard statistics and recent reports */}
         {/* ───────────────────────────────────────────────────────────────── */}
         {activeTab === "overview" && (
           <div className="space-y-6">
-            {/* Statistics Cards */}
+            {/* Main statistics cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-linear-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white transform transition hover:-translate-y-1">
                 <div className="flex items-center justify-between mb-4">
@@ -355,7 +396,7 @@ export function AdminDashboard() {
               </div>
             </div>
 
-            {/* Additional Stats */}
+            {/* Additional smaller statistics cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -398,7 +439,7 @@ export function AdminDashboard() {
               </div>
             </div>
 
-            {/* Quick Activity Preview */}
+            {/* Recent reports preview from the latest report records */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                 <Calendar className="h-6 w-6 mr-2 text-orange-500" />
@@ -444,10 +485,11 @@ export function AdminDashboard() {
         )}
 
         {/* ───────────────────────────────────────────────────────────────── */}
-        {/* ADOPTIONS TAB */}
+        {/* ADOPTIONS TAB: Search, filter, view, and delete adoption listings */}
         {/* ───────────────────────────────────────────────────────────────── */}
         {activeTab === "adoptions" && (
           <div className="space-y-6">
+            {/* Search bar and status filter for adoption records */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
@@ -475,6 +517,7 @@ export function AdminDashboard() {
               </div>
             </div>
 
+            {/* Adoption records table */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -527,12 +570,15 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex gap-2">
+                            {/* Open adoption detail modal */}
                             <button
                               onClick={() => setSelectedAdoption(adoption)}
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
                             >
                               <Eye className="h-5 w-5" />
                             </button>
+
+                            {/* Open delete confirmation modal for this adoption */}
                             <button
                               onClick={() => {
                                 setDeleteType("adoption");
@@ -565,10 +611,11 @@ export function AdminDashboard() {
         )}
 
         {/* ───────────────────────────────────────────────────────────────── */}
-        {/* REPORTS TAB */}
+        {/* REPORTS TAB: Search, filter, view details/media, and delete reports */}
         {/* ───────────────────────────────────────────────────────────────── */}
         {activeTab === "reports" && (
           <div className="space-y-6">
+            {/* Search bar and status filter for stray dog reports */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
@@ -605,6 +652,7 @@ export function AdminDashboard() {
               </div>
             </div>
 
+            {/* Reports table */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -630,7 +678,7 @@ export function AdminDashboard() {
                   <tbody className="divide-y divide-gray-200">
                     {filteredReports.map((report) => (
                       <tr key={report._id} className="hover:bg-gray-50">
-                        {/* CLEANER DOG DETAILS DISPLAY */}
+                        {/* Show a short version of dog description in the table */}
                         <td className="px-6 py-4">
                           <p
                             className="text-xs text-gray-500 truncate max-w-62.5"
@@ -641,6 +689,7 @@ export function AdminDashboard() {
                           </p>
                         </td>
 
+                        {/* Show address if available, otherwise show coordinates */}
                         <td className="px-6 py-4">
                           <p
                             className="text-sm text-gray-900 truncate max-w-50"
@@ -671,12 +720,15 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex gap-2">
+                            {/* Open report detail modal */}
                             <button
                               onClick={() => setSelectedReport(report)}
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
                             >
                               <Eye className="h-5 w-5" />
                             </button>
+
+                            {/* Open delete confirmation modal for this report */}
                             <button
                               onClick={() => {
                                 setDeleteType("report");
@@ -709,10 +761,11 @@ export function AdminDashboard() {
         )}
 
         {/* ───────────────────────────────────────────────────────────────── */}
-        {/* USERS TAB */}
+        {/* USERS TAB: Search, filter, and view registered user accounts */}
         {/* ───────────────────────────────────────────────────────────────── */}
         {activeTab === "users" && (
           <div className="space-y-6">
+            {/* Search bar and role filter for users */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
@@ -740,6 +793,7 @@ export function AdminDashboard() {
               </div>
             </div>
 
+            {/* Users table */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -791,6 +845,7 @@ export function AdminDashboard() {
                           {new Date(user.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4">
+                          {/* Open user detail modal */}
                           <button
                             onClick={() => setSelectedUser(user)}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
@@ -809,7 +864,7 @@ export function AdminDashboard() {
       </div>
 
       {/* ───────────────────────────────────────────────────────────────── */}
-      {/* MODALS */}
+      {/* MODALS: Detail modals and delete confirmation modal */}
       {/* ───────────────────────────────────────────────────────────────── */}
 
       {/* Adoption Detail Modal */}
@@ -826,6 +881,7 @@ export function AdminDashboard() {
               </button>
             </div>
             <div className="p-6 space-y-4">
+              {/* Shows full adoption object for admin review */}
               <pre className="bg-gray-100 p-4 rounded text-sm overflow-x-auto">
                 {JSON.stringify(selectedAdoption, null, 2)}
               </pre>
@@ -848,6 +904,7 @@ export function AdminDashboard() {
               </button>
             </div>
             <div className="p-6 space-y-6">
+              {/* Display uploaded report images or videos if available */}
               {selectedReport.media && selectedReport.media.length > 0 && (
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-3">
@@ -878,7 +935,7 @@ export function AdminDashboard() {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Dog & Location Info */}
+                {/* Dog and location information section */}
                 <div className="bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-100">
                   <h3 className="font-bold text-gray-800 border-b pb-2 mb-3">
                     Dog & Location Details
@@ -924,7 +981,7 @@ export function AdminDashboard() {
                   </p>
                 </div>
 
-                {/* Status & Contact Info */}
+                {/* Report status and adoption/guardian contact information */}
                 <div className="bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-100">
                   <h3 className="font-bold text-gray-800 border-b pb-2 mb-3">
                     Status & Contacts
@@ -942,7 +999,7 @@ export function AdminDashboard() {
                     </span>
                   </p>
 
-                  {/* Show Adopter if it exists */}
+                  {/* Show permanent adopter details only when they exist */}
                   {selectedReport.adopterDetails?.name && (
                     <div className="mt-3 bg-green-50 p-3 rounded border border-green-200">
                       <p className="text-xs text-green-800 font-bold mb-1">
@@ -957,7 +1014,7 @@ export function AdminDashboard() {
                     </div>
                   )}
 
-                  {/* Show Temp Guardian if it exists */}
+                  {/* Show temporary guardian details only when they exist */}
                   {selectedReport.tempGuardianDetails?.name && (
                     <div className="mt-3 bg-yellow-50 p-3 rounded border border-yellow-200">
                       <p className="text-xs text-yellow-800 font-bold mb-1">
@@ -992,6 +1049,7 @@ export function AdminDashboard() {
               </button>
             </div>
             <div className="p-6">
+              {/* Shows full user object for admin review */}
               <pre className="bg-gray-100 p-4 rounded text-sm overflow-x-auto">
                 {JSON.stringify(selectedUser, null, 2)}
               </pre>
@@ -1021,6 +1079,7 @@ export function AdminDashboard() {
                 deleting this {deleteType}.
               </p>
 
+              {/* Admin must provide a reason before confirming deletion */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Reason for Deletion <span className="text-red-500">*</span>

@@ -18,19 +18,33 @@ import {
 import { useGoogleLogin } from "@react-oauth/google";
 
 export default function AuthPage({ onLogin }) {
+  // ─────────────────────────────────────────────────────────────
+  // Main UI state controls whether the user is on Login, Sign Up,
+  // Forgot Password, and whether the password field is visible.
+  // ─────────────────────────────────────────────────────────────
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [accountType, setAccountType] = useState("user"); // "user" | "organization" | "admin"
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
+  // ─────────────────────────────────────────────────────────────
+  // Loading and error states are used to show button loading text
+  // and display validation/API errors to the user.
+  // ─────────────────────────────────────────────────────────────
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Login form state
+  // ─────────────────────────────────────────────────────────────
+  // Login form state stores the email and password entered by an
+  // existing user.
+  // ─────────────────────────────────────────────────────────────
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  // User Signup form state
+  // ─────────────────────────────────────────────────────────────
+  // Individual user signup form state.
+  // These values are submitted when a normal user creates an account.
+  // ─────────────────────────────────────────────────────────────
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPhone, setSignupPhone] = useState("");
@@ -39,7 +53,11 @@ export default function AuthPage({ onLogin }) {
   const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
-  // Organization Signup form state
+  // ─────────────────────────────────────────────────────────────
+  // Organization signup form state.
+  // This stores organization details such as address, services,
+  // opening hours, and login credentials.
+  // ─────────────────────────────────────────────────────────────
   const [orgName, setOrgName] = useState("");
   const [orgAddress, setOrgAddress] = useState("");
   const [orgTelephone, setOrgTelephone] = useState("");
@@ -51,16 +69,24 @@ export default function AuthPage({ onLogin }) {
   const [orgConfirmPassword, setOrgConfirmPassword] = useState("");
   const [orgAgreeToTerms, setOrgAgreeToTerms] = useState(false);
 
-  // Admin Signup form state
+  // ─────────────────────────────────────────────────────────────
+  // Admin signup form state.
+  // Admin registration requires an extra admin code for verification.
+  // ─────────────────────────────────────────────────────────────
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [adminConfirmPassword, setAdminConfirmPassword] = useState("");
   const [adminCode, setAdminCode] = useState("");
   const [adminAgreeToTerms, setAdminAgreeToTerms] = useState(false);
 
+  // Stores the email entered in the forgot password form.
   const [forgotEmail, setForgotEmail] = useState("");
 
-  // --- API CALL: LOGIN ---
+  // ─────────────────────────────────────────────────────────────
+  // LOGIN API CALL
+  // Sends email and password to the backend. If successful, the JWT
+  // token and user object are saved in localStorage.
+  // ─────────────────────────────────────────────────────────────
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -90,7 +116,11 @@ export default function AuthPage({ onLogin }) {
     }
   };
 
-  // --- API CALL: GOOGLE SIGN-IN ---
+  // ─────────────────────────────────────────────────────────────
+  // GOOGLE SIGN-IN API CALL
+  // First gets the user's Google profile, then sends it to the backend
+  // so the system can create/login the user.
+  // ─────────────────────────────────────────────────────────────
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setIsLoading(true);
@@ -133,7 +163,11 @@ export default function AuthPage({ onLogin }) {
     },
   });
 
-  // --- API CALL: INDIVIDUAL SIGNUP ---
+  // ─────────────────────────────────────────────────────────────
+  // INDIVIDUAL SIGNUP API CALL
+  // Validates terms/password confirmation, then registers a normal
+  // individual user account through the backend.
+  // ─────────────────────────────────────────────────────────────
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -175,7 +209,11 @@ export default function AuthPage({ onLogin }) {
     }
   };
 
-  // --- API CALL: ORGANIZATION SIGNUP ---
+  // ─────────────────────────────────────────────────────────────
+  // ORGANIZATION SIGNUP API CALL
+  // Registers animal welfare organizations with service and contact
+  // details so they can be part of the platform.
+  // ─────────────────────────────────────────────────────────────
   const handleOrgSignupSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -220,7 +258,11 @@ export default function AuthPage({ onLogin }) {
     }
   };
 
-  // --- API CALL: ADMIN SIGNUP ---
+  // ─────────────────────────────────────────────────────────────
+  // ADMIN SIGNUP API CALL
+  // Registers an admin account. The admin code is sent to the backend
+  // so the backend can verify that the user is allowed to become admin.
+  // ─────────────────────────────────────────────────────────────
   const handleAdminSignupSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -261,6 +303,11 @@ export default function AuthPage({ onLogin }) {
     }
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // Forgot password handler.
+  // Currently this only shows an alert. A real reset email endpoint
+  // can be connected here later.
+  // ─────────────────────────────────────────────────────────────
   const handleForgotPasswordSubmit = (e) => {
     e.preventDefault();
     alert(`Password reset link sent to ${forgotEmail}`);
@@ -268,6 +315,10 @@ export default function AuthPage({ onLogin }) {
     setForgotEmail("");
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // Reusable error banner component.
+  // It is displayed only when errorMsg has a value.
+  // ─────────────────────────────────────────────────────────────
   const ErrorBanner = () => {
     if (!errorMsg) return null;
     return (
@@ -281,7 +332,7 @@ export default function AuthPage({ onLogin }) {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 flex flex-col items-center justify-center p-4 md:p-8 m-0 absolute top-0 left-0 right-0">
       <div className="w-full max-w-4xl mx-auto">
-        {/* Header with Logo */}
+        {/* Header section with logo, title, and short mission statement */}
         <div className="text-center mb-10 mt-8">
           <div className="flex flex-col items-center mb-6">
             <div className="relative mb-4">
@@ -300,7 +351,7 @@ export default function AuthPage({ onLogin }) {
           </div>
         </div>
 
-        {/* Main Auth Container */}
+        {/* Main authentication card */}
         <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100 mb-12 relative z-10 w-full">
           {showForgotPassword ? (
             /* Forgot Password Form */
@@ -318,6 +369,7 @@ export default function AuthPage({ onLogin }) {
                   onSubmit={handleForgotPasswordSubmit}
                   className="space-y-6"
                 >
+                  {/* Email field for password reset request */}
                   <div>
                     <label className="block text-base font-semibold text-gray-700 mb-2">
                       Email Address
@@ -352,7 +404,7 @@ export default function AuthPage({ onLogin }) {
             </div>
           ) : (
             <>
-              {/* Tab Switcher */}
+              {/* Login / Sign Up tab switcher */}
               <div className="flex border-b-2 border-gray-100 bg-white">
                 <button
                   type="button"
@@ -408,6 +460,7 @@ export default function AuthPage({ onLogin }) {
 
                     <ErrorBanner />
 
+                    {/* Login email input */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Email Address
@@ -425,6 +478,7 @@ export default function AuthPage({ onLogin }) {
                       </div>
                     </div>
 
+                    {/* Login password input with show/hide button */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Password
@@ -453,6 +507,7 @@ export default function AuthPage({ onLogin }) {
                       </div>
                     </div>
 
+                    {/* Remember me and forgot password actions */}
                     <div className="flex items-center justify-between pt-2">
                       <label className="flex items-center cursor-pointer">
                         <input
@@ -480,6 +535,7 @@ export default function AuthPage({ onLogin }) {
                       {isLoading ? "Signing In..." : "Sign In"}
                     </button>
 
+                    {/* Divider between normal login and Google login */}
                     <div className="relative my-6">
                       <div className="absolute inset-0 flex items-center">
                         <div className="w-full border-t border-gray-200"></div>
@@ -491,6 +547,7 @@ export default function AuthPage({ onLogin }) {
                       </div>
                     </div>
 
+                    {/* Google OAuth login button */}
                     <button
                       type="button"
                       onClick={() => loginWithGoogle()}
@@ -520,7 +577,7 @@ export default function AuthPage({ onLogin }) {
                 ) : (
                   /* Sign Up Form */
                   <div className="max-w-2xl mx-auto">
-                    {/* Account Type Toggle - UPDATED FOR ADMIN */}
+                    {/* Account type toggle controls which signup form is shown */}
                     <div className="mb-8">
                       <label className="block text-sm font-semibold text-gray-700 mb-3 text-center">
                         Account Type
@@ -576,7 +633,7 @@ export default function AuthPage({ onLogin }) {
 
                     <ErrorBanner />
 
-                    {/* Conditional Rendering based on accountType */}
+                    {/* Render the correct signup form depending on selected account type */}
                     {accountType === "user" ? (
                       // --- INDIVIDUAL SIGNUP ---
                       <form onSubmit={handleSignupSubmit} className="space-y-5">
@@ -588,7 +645,8 @@ export default function AuthPage({ onLogin }) {
                             Join our community of animal lovers
                           </p>
                         </div>
-                        {/* Name */}
+
+                        {/* Individual user's full name */}
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Full Name
@@ -605,6 +663,8 @@ export default function AuthPage({ onLogin }) {
                             />
                           </div>
                         </div>
+
+                        {/* Individual user's contact information */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           {/* Email */}
                           <div>
@@ -640,7 +700,8 @@ export default function AuthPage({ onLogin }) {
                             </div>
                           </div>
                         </div>
-                        {/* City */}
+
+                        {/* Individual user's city */}
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
                             City
@@ -657,6 +718,8 @@ export default function AuthPage({ onLogin }) {
                             />
                           </div>
                         </div>
+
+                        {/* Password and confirm password fields */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           {/* Password */}
                           <div>
@@ -708,7 +771,8 @@ export default function AuthPage({ onLogin }) {
                             </div>
                           </div>
                         </div>
-                        {/* Terms */}
+
+                        {/* Terms and privacy agreement */}
                         <div className="flex items-start pt-2">
                           <input
                             type="checkbox"
@@ -750,7 +814,8 @@ export default function AuthPage({ onLogin }) {
                             Register your organization
                           </p>
                         </div>
-                        {/* Org Name */}
+
+                        {/* Organization name */}
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Organization Name
@@ -767,7 +832,8 @@ export default function AuthPage({ onLogin }) {
                             />
                           </div>
                         </div>
-                        {/* Address */}
+
+                        {/* Organization address */}
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Address
@@ -784,6 +850,8 @@ export default function AuthPage({ onLogin }) {
                             />
                           </div>
                         </div>
+
+                        {/* Organization contact information */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           {/* Telephone */}
                           <div>
@@ -822,7 +890,8 @@ export default function AuthPage({ onLogin }) {
                             </div>
                           </div>
                         </div>
-                        {/* Services */}
+
+                        {/* Services offered by the organization */}
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Services Provided
@@ -838,7 +907,8 @@ export default function AuthPage({ onLogin }) {
                             />
                           </div>
                         </div>
-                        {/* Hours */}
+
+                        {/* Organization opening hours */}
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Opening Hours
@@ -857,7 +927,8 @@ export default function AuthPage({ onLogin }) {
                             />
                           </div>
                         </div>
-                        {/* Other */}
+
+                        {/* Optional extra organization details */}
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Other Details (Optional)
@@ -872,6 +943,8 @@ export default function AuthPage({ onLogin }) {
                             />
                           </div>
                         </div>
+
+                        {/* Organization password and confirmation */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           {/* Password */}
                           <div>
@@ -921,7 +994,8 @@ export default function AuthPage({ onLogin }) {
                             </div>
                           </div>
                         </div>
-                        {/* Terms */}
+
+                        {/* Terms and privacy agreement */}
                         <div className="flex items-start pt-2">
                           <input
                             type="checkbox"
@@ -967,7 +1041,8 @@ export default function AuthPage({ onLogin }) {
                             Register as a system administrator
                           </p>
                         </div>
-                        {/* Email */}
+
+                        {/* Admin email address */}
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Email Address
@@ -984,6 +1059,8 @@ export default function AuthPage({ onLogin }) {
                             />
                           </div>
                         </div>
+
+                        {/* Admin password and confirmation */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           {/* Password */}
                           <div>
@@ -1035,7 +1112,8 @@ export default function AuthPage({ onLogin }) {
                             </div>
                           </div>
                         </div>
-                        {/* Admin Code */}
+
+                        {/* Admin registration code used to verify admin access */}
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Admin Registration Code
@@ -1052,7 +1130,8 @@ export default function AuthPage({ onLogin }) {
                             />
                           </div>
                         </div>
-                        {/* Terms */}
+
+                        {/* Terms and privacy agreement */}
                         <div className="flex items-start pt-2">
                           <input
                             type="checkbox"

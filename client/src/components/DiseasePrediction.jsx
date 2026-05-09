@@ -13,8 +13,10 @@ import {
   Star,
 } from "lucide-react";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
-
+// ─────────────────────────────────────────────────────────────
+// Helper function to return Tailwind CSS classes based on disease severity.
+// This is used to style the severity badge in the results section.
+// ─────────────────────────────────────────────────────────────
 function getSeverityColor(severity) {
   switch (severity) {
     case "Low":
@@ -30,6 +32,10 @@ function getSeverityColor(severity) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Helper function to return the correct icon based on severity level.
+// This makes the result easier for the user to understand visually.
+// ─────────────────────────────────────────────────────────────
 function getSeverityIcon(severity) {
   switch (severity) {
     case "Low":
@@ -44,17 +50,35 @@ function getSeverityIcon(severity) {
   }
 }
 
-// ─── Component ────────────────────────────────────────────────────────────
-
+// ─────────────────────────────────────────────────────────────
+// DiseaseDetectionPage allows users to upload a dog image and send it
+// to the backend AI disease detection endpoint for analysis.
+// ─────────────────────────────────────────────────────────────
 export function DiseaseDetectionPage() {
+  // ─────────────────────────────────────────────────────────────
+  // Image upload state:
+  // uploadedImages stores preview URLs for display.
+  // uploadedFile stores the real image File object sent to the backend.
+  // ─────────────────────────────────────────────────────────────
   const [uploadedImages, setUploadedImages] = useState([]); // preview URLs
   const [uploadedFile, setUploadedFile] = useState(null); // actual File object
+
+  // ─────────────────────────────────────────────────────────────
+  // Page status state:
+  // isProcessing controls the loading screen.
+  // results stores the AI prediction response.
+  // error stores any failed request or validation message.
+  // serviceStatus stores whether the disease detection service/model is ready.
+  // ─────────────────────────────────────────────────────────────
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [serviceStatus, setServiceStatus] = useState(null); // { serviceOnline, modelLoaded }
 
-  // ── Check if Flask microservice is online on page load ──────────────────
+  // ─────────────────────────────────────────────────────────────
+  // Check if the disease detection backend service is online.
+  // This runs once when the page first loads and updates the status banner.
+  // ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const checkService = async () => {
       try {
@@ -64,14 +88,18 @@ export function DiseaseDetectionPage() {
         const data = await res.json();
         setServiceStatus(data);
       } catch {
+        // If the status request fails, treat the service as offline.
         setServiceStatus({ serviceOnline: false, modelLoaded: false });
       }
     };
     checkService();
   }, []);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
-
+  // ─────────────────────────────────────────────────────────────
+  // Handles image selection from the file input.
+  // The model analyses one image at a time, so only the first selected
+  // image is stored and previewed.
+  // ─────────────────────────────────────────────────────────────
   const handleImageUpload = (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -84,6 +112,10 @@ export function DiseaseDetectionPage() {
     setError(null);
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // Sends the uploaded image to the backend AI analysis endpoint.
+  // The image is sent using FormData because it is a file upload request.
+  // ─────────────────────────────────────────────────────────────
   const handleAnalyze = async () => {
     if (!uploadedFile) return;
 
@@ -119,6 +151,7 @@ export function DiseaseDetectionPage() {
         throw new Error(data.message || `Analysis failed (${res.status})`);
       }
 
+      // Store the backend prediction result so the results section can render.
       setResults(data);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -128,6 +161,10 @@ export function DiseaseDetectionPage() {
     }
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // Resets the page back to its initial state by clearing image preview,
+  // uploaded file, result, error, and loading state.
+  // ─────────────────────────────────────────────────────────────
   const handleReset = () => {
     setUploadedImages([]);
     setUploadedFile(null);
@@ -136,11 +173,10 @@ export function DiseaseDetectionPage() {
     setIsProcessing(false);
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        {/* ── Header ──────────────────────────────────────────────────────── */}
+        {/* Page header with title and feature description */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500 rounded-full mb-6">
             <Stethoscope className="h-10 w-10 text-white" />
@@ -154,7 +190,7 @@ export function DiseaseDetectionPage() {
           </p>
         </div>
 
-        {/* ── Service status banner ────────────────────────────────────────── */}
+        {/* Service status banner shows whether the AI service and model are ready */}
         {serviceStatus !== null && (
           <div
             className={`flex items-center space-x-3 px-5 py-3 rounded-xl mb-6 border ${
@@ -180,7 +216,7 @@ export function DiseaseDetectionPage() {
           </div>
         )}
 
-        {/* ── How it works ─────────────────────────────────────────────────── */}
+        {/* Explanation card describing how the disease detection feature works */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex items-start space-x-4 mb-6">
             <Info className="h-6 w-6 text-blue-500 flex-shrink-0 mt-1" />
@@ -220,7 +256,7 @@ export function DiseaseDetectionPage() {
           </div>
         </div>
 
-        {/* ── Upload section ───────────────────────────────────────────────── */}
+        {/* Upload section where the user selects an image for analysis */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl mb-6 text-gray-800 flex items-center">
             <Upload className="h-6 w-6 mr-2 text-green-500" />
@@ -228,6 +264,7 @@ export function DiseaseDetectionPage() {
           </h2>
 
           {uploadedImages.length === 0 ? (
+            // Show upload box when no image has been selected.
             <label className="block">
               <div className="border-3 border-dashed border-gray-300 rounded-xl p-12 text-center hover:border-green-500 hover:bg-green-50 transition-colors cursor-pointer">
                 <Camera className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -244,6 +281,7 @@ export function DiseaseDetectionPage() {
               </div>
             </label>
           ) : (
+            // Show image preview and action buttons after image upload.
             <div>
               {/* Image preview */}
               <div className="relative inline-block mb-6 group">
@@ -260,7 +298,7 @@ export function DiseaseDetectionPage() {
                 </button>
               </div>
 
-              {/* Action buttons */}
+              {/* Buttons for analysing the image or resetting the upload */}
               <div className="flex gap-4">
                 <button
                   onClick={handleAnalyze}
@@ -288,7 +326,7 @@ export function DiseaseDetectionPage() {
           )}
         </div>
 
-        {/* ── Processing state ─────────────────────────────────────────────── */}
+        {/* Processing state shown while the AI request is running */}
         {isProcessing && (
           <div className="bg-white rounded-2xl shadow-lg p-12 mb-8">
             <div className="text-center">
@@ -311,7 +349,7 @@ export function DiseaseDetectionPage() {
           </div>
         )}
 
-        {/* ── Error state ──────────────────────────────────────────────────── */}
+        {/* Error state shown if the analysis request fails */}
         {error && !isProcessing && (
           <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border-2 border-red-200">
             <div className="flex items-start space-x-3">
@@ -332,7 +370,7 @@ export function DiseaseDetectionPage() {
           </div>
         )}
 
-        {/* ── Results ──────────────────────────────────────────────────────── */}
+        {/* Results section shown after successful disease detection */}
         {results && !isProcessing && (
           <>
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border-2 border-green-200">
@@ -341,7 +379,7 @@ export function DiseaseDetectionPage() {
                 Detection Results
               </h2>
 
-              {/* Disease name + description */}
+              {/* Main result card showing disease, severity, confidence, and description */}
               <div className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl p-6 mb-6">
                 <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
                   <div>
@@ -360,14 +398,14 @@ export function DiseaseDetectionPage() {
                       {getSeverityIcon(results.severity)}
                       {results.severity} Severity
                     </span>
-                    {/* Confidence */}
+                    {/* Confidence percentage returned by the AI model */}
                     <span className="text-sm text-gray-500">
                       Confidence: <strong>{results.confidence}%</strong>
                     </span>
                   </div>
                 </div>
 
-                {/* Confidence bar */}
+                {/* Visual confidence bar */}
                 <div className="mb-4">
                   <div className="flex justify-between text-xs text-gray-500 mb-1">
                     <span>Model confidence</span>
@@ -381,6 +419,7 @@ export function DiseaseDetectionPage() {
                   </div>
                 </div>
 
+                {/* Description returned by the backend prediction response */}
                 <div className="bg-white rounded-lg p-4">
                   <p className="text-gray-700 leading-relaxed">
                     {results.description}
@@ -388,18 +427,9 @@ export function DiseaseDetectionPage() {
                 </div>
               </div>
 
-              {/* Points awarded */}
-              {results.pointsAwarded && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex items-center space-x-3">
-                  <Star className="h-5 w-5 text-amber-500 flex-shrink-0" />
-                  <p className="text-amber-800 text-sm font-medium">
-                    You earned <strong>+{results.pointsAwarded} points</strong>{" "}
-                    for using health detection!
-                  </p>
-                </div>
-              )}
+            
 
-              {/* Medical disclaimer */}
+              {/* Medical disclaimer reminding users that AI is not a vet diagnosis */}
               <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded mb-4">
                 <div className="flex items-start">
                   <AlertTriangle className="h-5 w-5 text-amber-600 mr-3 flex-shrink-0 mt-0.5" />
@@ -416,7 +446,7 @@ export function DiseaseDetectionPage() {
                 </div>
               </div>
 
-              {/* Human contagion warning */}
+              {/* Human safety message changes depending on contagion risk */}
               {results.contagiousToHumans ? (
                 <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
                   <div className="flex items-start">
@@ -466,13 +496,14 @@ export function DiseaseDetectionPage() {
               )}
             </div>
 
-            {/* ── Next steps ─────────────────────────────────────────────── */}
+            {/* Recommended next steps after detection result */}
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <h2 className="text-2xl mb-6 text-gray-800 flex items-center">
                 <Info className="h-6 w-6 mr-2 text-purple-500" />
                 Recommended Next Steps
               </h2>
 
+              {/* Four action cards generated from an array to avoid repeated JSX */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
                   {
@@ -514,7 +545,7 @@ export function DiseaseDetectionPage() {
                 ))}
               </div>
 
-              {/* Emergency signs */}
+              {/* Emergency warning signs section */}
               <div className="mt-6 bg-gray-50 rounded-lg p-6">
                 <h3 className="font-semibold text-gray-800 mb-3">
                   Emergency Warning Signs
@@ -541,6 +572,7 @@ export function DiseaseDetectionPage() {
         )}
       </div>
 
+      {/* Local CSS animation used by the processing progress bar */}
       <style>{`
         @keyframes progress {
           from { width: 0%; }

@@ -6,23 +6,7 @@
  * PURPOSE:
  * Multi-step stray dog reporting system where users can report stray dogs
  * they've encountered by providing location, photos, condition details, and
- * contact information for follow-up rescue operations.
- * 
- * KEY FEATURES:
- * 1. GOOGLE MAPS INTEGRATION
- *    
- * 2. MULTI-STEP FORM WIZARD
- *  
- * 3. PHOTO UPLOAD
- *   
- * 
- * 4. HEALTH ASSESSMENT
-
- * 5. REPORT TRACKING
- *  
- * 
- * 6. REPORTER INFORMATION
- *   
+ * contact information for follow-up rescue operations.  
  * 
  * API ENDPOINTS:
  * GET    /api/reports                  - Fetch all reports
@@ -31,9 +15,7 @@
  * PATCH  /api/reports/:id              - Update report status
  * DELETE /api/reports/:id              - Delete report
  * 
- * MAPS & LOCATIONS:
- 
- * ═════════════════════════════════════════════════════════════════════════════
+
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
