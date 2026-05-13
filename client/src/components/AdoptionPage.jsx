@@ -3,46 +3,6 @@
  * ADOPTION PAGE COMPONENT (AdoptionPage.jsx)
  * ═════════════════════════════════════════════════════════════════════════════
  * 
- * PURPOSE:
- * Main adoption platform interface where users can:
- * 1. BROWSE available dogs for adoption
- * 2. FILTER by breed, age, location, status
- * 3. REQUEST adoption for a dog
- * 4. CONFIRM adoption requests via email
- * 5. LIST their own dogs for adoption (organizations)
- * 
- * KEY FEATURES:
- * 1. DOG LISTINGS
- *    - Display all adoptable dogs in grid/list format
- *    - Each card shows: photo, name, breed, age, location, status
- *    - Click to view full details modal
- * 
- * 2. SEARCH & FILTER
- *    - Search by dog name
- *    - Filter by: breed, age range, location (Sri Lankan cities), status
- *    - Real-time filtering (useMemo optimization)
- *    - Filter pills with clear all option
- * 
- * 3. ADOPTION REQUEST WORKFLOW
- *    - User selects dog → Modal with adoption form
- *    - Requires: requester name, email, contact
- *    - Prevents users from adopting their own listed dogs
- *    - Email confirmation to requester
- *    - Confirmation email from organization
- * 
- * 4. REGISTER A DOG (Organizations)
- *    - Modal form to add new adoptable dog
- *    - Upload photos (multiple)
- *    - Fill: name, breed, age, gender, location, description
- *    - Registered person contact info (name, email, phone)
- *    - Creates registration linked to user account
- * 
- * 5. STATISTICS DASHBOARD
- *    - Total dogs in system
- *    - Available for adoption
- *    - Successfully adopted
- *    - Pending adoption requests
- * 
  * STATE MANAGEMENT:
  * • dogs: Array of all dog listings from backend
  * • counts: Statistics object {totalDogs, availableDogs, successfullyAdopted, pendingRequests}
@@ -50,41 +10,14 @@
  * • Modal states: showListDogModal, showDetailModal, showRequestConfirmation, showConfirmationEmail
  * • Form states: Dog details, photo uploads, requester details, registered person details
  * 
- * API ENDPOINTS:
- * GET    /api/adoption                      - Fetch all dog listings
- * GET    /api/adoption/counts               - Fetch adoption statistics
- * POST   /api/adoption/create               - Create new dog listing
- * POST   /api/adoption/request              - Submit adoption request
- * PATCH  /api/adoption/confirm/:id          - Confirm adoption request
- * DELETE /api/adoption/:id                  - Delete dog listing
- * 
- * FILTERING LOGIC:
- * • Breed filter: "All" vs specific breed match
- * • Age filter: Age ranges (puppy/young/adult/senior)
- * • Location filter: Sri Lankan cities list
- * • Status filter: Available, Adopted, Pending
- * • Search: Case-insensitive name matching
- * • Combined: All filters applied with AND logic (useMemo)
- * 
- * ADOPTION REQUEST WORKFLOW:
- * 1. User clicks "Adopt" on dog card
- * 2. Modal shows dog details + adoption form
- * 3. User fills requester info (name, email, contact)
- * 4. System prevents self-adoption (checks if requester owns dog listing)
- * 5. Submit request → API creates adoption_request record
- * 6. Email sent to requester confirming request
- * 7. Organization receives notification
- * 8. Organization can confirm/reject request
- * 9. Status changes to "Adopted" when confirmed
- * 
- * STYLING:
- * • Tailwind CSS with consistent orange/amber theme
- * • Responsive grid: 1-2 columns mobile, 3-4 desktop
- * • Modal overlays with backdrop blur
- * • Loading spinners and error messages
- * • Hover effects on cards and buttons
- * 
- * ═════════════════════════════════════════════════════════════════════════════
+ * API ENDPOINTS 
+GET  /api/adoption
+GET  /api/adoption/counts
+POST /api/adoption
+POST /api/adoption/:id/request
+PUT  /api/adoption/:id/confirm
+PUT  /api/adoption/:id/cancel
+
  */
 
 import { useState, useMemo, useEffect } from "react";
@@ -129,10 +62,7 @@ export default function AdoptionPage() {
    * PRIMARY DATA STATE
    * • dogs: Array of all dog listings fetched from backend
    * • counts: Statistics object with adoption platform metrics
-   *   - totalDogs: Total dogs in system
-   *   - availableDogs: Dogs currently available for adoption
-   *   - successfullyAdopted: Dogs already adopted
-   *   - pendingRequests: Adoption requests awaiting organization response
+
    */
   const [dogs, setDogs] = useState([]);
   const [counts, setCounts] = useState({
@@ -146,15 +76,8 @@ export default function AdoptionPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  /**
-   * FILTER STATES
-   * Used for real-time filtering of dog listings
-   * • searchQuery: Text search for dog name (case-insensitive)
-   * • selectedBreed: Filter by dog breed ("All" for no filter)
-   * • selectedAge: Filter by age range ("All" for no filter)
-   * • selectedLocation: Filter by Sri Lankan city ("All" for no filter)
-   * • selectedStatus: Filter by adoption status (Available/Adopted/Pending)
-   */
+  
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBreed, setSelectedBreed] = useState("All");
   const [selectedAge, setSelectedAge] = useState("All");
@@ -203,12 +126,7 @@ export default function AdoptionPage() {
    * • photoPreviews: Data URLs for preview display
    * 
    * DOG DETAILS:
-   * • dogName: Name of dog
-   * • dogBreed: Breed from commonBreeds list
-   * • dogAge: Age in years/months
-   * • dogGender: "Male" or "Female"
-   * • dogLocation: City from sriLankanCities list
-   * • dogDescription: Long text description (behavior, health, etc)
+   *
    * 
    * REGISTERED PERSON DETAILS:
    * • registeredPersonName: Organization/person name
@@ -232,12 +150,7 @@ export default function AdoptionPage() {
    * Static arrays used for filter options and form dropdowns
    */
   
-  /**
-   * SRI LANKAN CITIES
-   * Used for location filtering and listing creation
-   * Covers all major cities across the island
-   * Users filter dogs by these cities
-   */
+
   const sriLankanCities = [
     "Colombo",
     "Kandy",
@@ -615,7 +528,6 @@ export default function AdoptionPage() {
         return <Info className="h-4 w-4" />;
     }
   };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-12 px-4">
       <div className="max-w-7xl mx-auto">

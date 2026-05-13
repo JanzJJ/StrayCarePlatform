@@ -26,14 +26,7 @@
  * Then in Controller:
  * req.user.id   // User's MongoDB ID
  * req.user.role // User's role ('individual' or 'organization')
- * 
- * Token Format (after verification):
- * {
- *   id: "user_mongodb_id",
- *   role: "individual" | "organization",
- *   iat: 1234567890,
- *   exp: 1234654290
- * }
+ 
  */
 
 const jwt = require("jsonwebtoken");

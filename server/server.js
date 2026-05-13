@@ -190,7 +190,6 @@ const PORT = process.env.PORT || 5001;
 /**
  * Start listening for incoming HTTP requests
  *
- * What happens here:
  * 1. Express server binds to PORT
  * 2. Server becomes available to accept requests
  * 3. Frontend can now send requests to http://server:5001/api/*
@@ -199,6 +198,5 @@ const PORT = process.env.PORT || 5001;
  * Log Output: "Server started on port 5001"
  * This confirms the server is ready to receive requests
  *
- * To stop server: Press Ctrl+C in terminal
  */
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

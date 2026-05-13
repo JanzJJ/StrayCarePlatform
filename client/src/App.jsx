@@ -20,6 +20,8 @@ export default function App() {
     return loggedInUser ? JSON.parse(loggedInUser) : null;
   });
 
+  
+
   // Handle successful login by updating user state
   const handleLoginSuccess = (userData) => {
     setUser(userData);

@@ -13,7 +13,8 @@ import {
   Briefcase,
   FileText,
   AlertCircle,
-  Shield, // Added Shield icon for Admin
+  Shield, // Lucide icon for admin account type
+  
 } from "lucide-react";
 import { useGoogleLogin } from "@react-oauth/google";
 

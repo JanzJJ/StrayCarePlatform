@@ -168,7 +168,7 @@ exports.createReport = async (req, res) => {
       try {
         await sendUrgentEmailsToOrgs(newReport);
       } catch (emailError) {
-        console.error("❌ Urgent email failed, but report was saved.");
+        console.error(" Urgent email failed, but report was saved.");
         console.error("Email error:", emailError.message);
       }
     }
@@ -343,7 +343,7 @@ exports.updateStatus = async (req, res) => {
       try {
         await sendUrgentEmailsToOrgs(report);
       } catch (emailError) {
-        console.error("❌ Urgent email failed after status update.");
+        console.error(" Urgent email failed after status update.");
         console.error("Email error:", emailError.message);
       }
     }
@@ -397,13 +397,13 @@ const sendUrgentEmailsToOrgs = async (reportDetails) => {
 
     if (validOrgs.length === 0) {
       console.warn(
-        "⚠️ Organizations found, but none have valid email addresses."
+        " Organizations found, but none have valid email addresses."
       );
       return;
     }
 
     console.log(
-      `📧 Sending urgent emails to: ${validOrgs
+      ` Sending urgent emails to: ${validOrgs
         .map((org) => org.email)
         .join(", ")}`
     );
@@ -444,9 +444,6 @@ An urgent stray dog report has been submitted through the StrayCare platform.
 Report Details:
 Status: Urgent Help Needed
 Location: ${locationText}
-Breed: ${dogBreed}
-Age: ${dogAge}
-Colour: ${dogColor}
 Description: ${dogDescription}
 
 Please log in to the StrayCare dashboard to view the full report, exact location, and uploaded photos/videos.
@@ -465,16 +462,16 @@ StrayCare Team
       const orgEmail = validOrgs[index].email;
 
       if (result.status === "fulfilled") {
-        console.log(`📧 Urgent email process completed for: ${orgEmail}`);
+        console.log(` Urgent email process completed for: ${orgEmail}`);
       } else {
-        console.error(`❌ Failed to send urgent email to: ${orgEmail}`);
+        console.error(` Failed to send urgent email to: ${orgEmail}`);
         console.error(result.reason);
       }
     });
 
-    console.log("✅ Urgent email notification process finished.");
+    console.log(" Urgent email notification process finished.");
   } catch (error) {
-    console.error("❌ Failed to send urgent emails to organizations:", error);
+    console.error(" Failed to send urgent emails to organizations:", error);
     console.error("Error message:", error.message);
   }
 };
